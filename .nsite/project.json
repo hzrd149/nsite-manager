@@ -1,0 +1,19 @@
+{
+  "relays": [
+    "wss://nostrue.com",
+    "wss://relay.damus.io",
+    "wss://relay.primal.net"
+  ],
+  "servers": [
+    "https://cdn.hzrd149.com",
+    "https://nostr.download",
+    "https://blossom.primal.net"
+  ],
+  "profile": {
+    "name": "nsite-manager",
+    "about": "A simple management dashboard for your nsites"
+  },
+  "publishProfile": true,
+  "publishServerList": true,
+  "publishRelayList": true
+}
