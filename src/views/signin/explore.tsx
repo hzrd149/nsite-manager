@@ -13,7 +13,7 @@ import { TimelineQuery } from "applesauce-core/queries";
 import { ReadonlyAccount } from "applesauce-accounts/accounts";
 import { useNavigate } from "react-router-dom";
 
-import { EXPLORE_RELAYS, NSITE_KIND } from "../../const";
+import { DEFAULT_RELAYS, NSITE_KIND } from "../../const";
 import useTimeline from "../../hooks/use-timeline";
 import UserName from "../../components/user-name";
 import { getEventUID } from "applesauce-core/helpers";
@@ -55,7 +55,7 @@ function SiteCard({ site }: { site: NostrEvent }) {
 }
 
 export default function ExploreSites() {
-  const timeline = useTimeline(EXPLORE_RELAYS, filters);
+  const timeline = useTimeline(DEFAULT_RELAYS, filters);
   const sites = useStoreQuery(TimelineQuery, [filters]);
 
   return (

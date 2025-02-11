@@ -52,7 +52,7 @@ export default function DashboardView() {
         </Heading>
 
         <ButtonGroup ml="auto">
-          <Button colorScheme="pink" as={RouterLink} to="/settings">
+          <Button colorScheme="pink" as={RouterLink} to="/settings/account">
             Settings
           </Button>
         </ButtonGroup>

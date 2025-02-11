@@ -1,5 +1,13 @@
-import { Button, Divider, Flex, Heading, Image } from "@chakra-ui/react";
+import {
+  Button,
+  Divider,
+  Flex,
+  Heading,
+  IconButton,
+  Image,
+} from "@chakra-ui/react";
 import { useObservable } from "applesauce-react/hooks";
+import { SettingsIcon } from "@chakra-ui/icons";
 import { Link as RouterLink, Outlet, useNavigate } from "react-router-dom";
 
 import accountManager from "../services/accounts";
@@ -44,11 +52,18 @@ function SideNav() {
       p="2"
       flexShrink={0}
     >
-      <Flex gap="4">
+      <Flex gap="4" alignItems="center">
         <Image w="20" src="/nsite.jpg" />
         <Heading size="lg" py="2" as={RouterLink} to="/">
           Manager
         </Heading>
+        <IconButton
+          as={RouterLink}
+          to="/settings/app"
+          icon={<SettingsIcon />}
+          aria-label="Settings"
+          ms="auto"
+        />
       </Flex>
       <Button colorScheme="pink" as={RouterLink} to="/signin">
         Add site

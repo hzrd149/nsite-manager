@@ -9,10 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@chakra-ui/react": "2",
+    "@chakra-ui/icons": "^2.2.4",
+    "@chakra-ui/react": "^2.10.5",
     "@emotion/react": "^11.14.0",
     "applesauce-accounts": "next",
     "applesauce-core": "next",
+    "applesauce-factory": "next",
     "applesauce-loaders": "next",
     "applesauce-react": "next",
     "applesauce-signers": "next",
@@ -35,9 +37,9 @@
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
-    "postcss": "^8.5.1",
+    "postcss": "^8.5.2",
     "prettier": "^3.5.0",
-    "typescript": "~5.7.2",
+    "typescript": "~5.7.3",
     "vite": "^6.1.0"
   },
   "packageManager": "pnpm@9.14.4"

@@ -1,5 +1,13 @@
 import { useState, FormEventHandler } from "react";
-import { Button, CloseButton, Flex, Input, Link, Text } from "@chakra-ui/react";
+import {
+  Button,
+  CloseButton,
+  Flex,
+  Input,
+  Link,
+  Text,
+  useToast,
+} from "@chakra-ui/react";
 import { useStoreQuery } from "applesauce-react/hooks";
 import { TimelineQuery } from "applesauce-core/queries";
 import { getTagValue, unixNow } from "applesauce-core/helpers";
@@ -14,16 +22,29 @@ const onlineFilter: Filter = {
   since: unixNow() - 60 * 60_000,
 };
 
-function AddRelayForm({ onSubmit }: { onSubmit: (relay: string) => void }) {
+function AddRelayForm({
+  onSubmit,
+}: {
+  onSubmit: (relay: string) => void | Promise<void>;
+}) {
+  const toast = useToast();
   const [relay, setRelay] = useState("");
 
   // fetch online relays
   useTimeline(["wss://relay.nostr.watch/"], onlineFilter);
 
-  const handleSubmit: FormEventHandler = (e) => {
-    e.preventDefault();
-    if (relay.trim()) onSubmit(relay);
-    setRelay("");
+  const [submitting, setSubmitting] = useState(false);
+  const handleSubmit: FormEventHandler = async (e) => {
+    try {
+      e.preventDefault();
+      setSubmitting(true);
+      if (relay.trim()) await onSubmit(relay);
+      setRelay("");
+    } catch (error) {
+      if (error instanceof Error)
+        toast({ status: "error", description: error.message });
+    }
+    setSubmitting(false);
   };
 
   const online = useStoreQuery(TimelineQuery, [onlineFilter]);
@@ -53,7 +74,7 @@ function AddRelayForm({ onSubmit }: { onSubmit: (relay: string) => void }) {
           </option>
         ))}
       </datalist>
-      <Button type="submit" colorScheme="pink">
+      <Button type="submit" colorScheme="pink" isLoading={submitting}>
         Add
       </Button>
     </Flex>
@@ -65,10 +86,23 @@ function RelayCard({
   onRemove,
 }: {
   relay: string;
-  onRemove: () => void;
+  onRemove: (relay: string) => void | Promise<void>;
 }) {
   const httpUrl = new URL(relay);
   httpUrl.protocol = httpUrl.protocol === "wss:" ? "https:" : "http:";
+
+  const toast = useToast();
+  const [removing, setRemoving] = useState(false);
+  const remove = async () => {
+    try {
+      setRemoving(true);
+      await onRemove(relay);
+    } catch (error) {
+      if (error instanceof Error)
+        toast({ status: "error", description: error.message });
+    }
+    setRemoving(true);
+  };
 
   return (
     <Flex
@@ -84,7 +118,7 @@ function RelayCard({
         {new URL(relay).toString()}
       </Link>
 
-      <CloseButton ml="auto" onClick={onRemove} />
+      <CloseButton ml="auto" onClick={remove} isDisabled={removing} />
     </Flex>
   );
 }
@@ -92,9 +126,13 @@ function RelayCard({
 export default function RelayPicker({
   relays,
   onChange,
+  onRemove,
+  onAdd,
 }: {
   relays: string[];
-  onChange: (relays: string[]) => void;
+  onAdd?: (relay: string) => void | Promise<void>;
+  onRemove?: (relay: string) => void | Promise<void>;
+  onChange?: (relays: string[]) => void | Promise<void>;
 }) {
   return (
     <>
@@ -103,11 +141,19 @@ export default function RelayPicker({
           <RelayCard
             relay={relay}
             key={relay.toString()}
-            onRemove={() => onChange(relays.filter((s) => s !== relay))}
+            onRemove={async () => {
+              if (onRemove) await onRemove(relay);
+              if (onChange) await onChange(relays.filter((s) => s !== relay));
+            }}
           />
         ))}
       </Flex>
-      <AddRelayForm onSubmit={(relay) => onChange([...relays, relay])} />
+      <AddRelayForm
+        onSubmit={async (relay) => {
+          if (onAdd) await onAdd(relay);
+          if (onChange) await onChange([...relays, relay]);
+        }}
+      />
 
       <Text color="GrayText" fontSize="sm">
         Find more relays at{" "}

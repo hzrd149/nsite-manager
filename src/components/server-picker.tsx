@@ -1,24 +1,45 @@
 import { useState, FormEventHandler } from "react";
-import { Button, CloseButton, Flex, Input, Link, Text } from "@chakra-ui/react";
+import {
+  Button,
+  CloseButton,
+  Flex,
+  Input,
+  Link,
+  Text,
+  useToast,
+} from "@chakra-ui/react";
 import { useStoreQuery } from "applesauce-react/hooks";
 import { TimelineQuery } from "applesauce-core/queries";
 import { getTagValue } from "applesauce-core/helpers";
 
-import { BLOSSOM_ADVERTIZEMENT_KIND, EXPLORE_RELAYS } from "../const";
+import { BLOSSOM_ADVERTIZEMENT_KIND, DEFAULT_RELAYS } from "../const";
 import useTimeline from "../hooks/use-timeline";
 import Favicon from "./server-favicon";
 
-function AddServerForm({ onSubmit }: { onSubmit: (server: string) => void }) {
+function AddServerForm({
+  onSubmit,
+}: {
+  onSubmit: (server: string) => void | Promise<void>;
+}) {
+  const toast = useToast();
   const [server, setServer] = useState("");
 
-  useTimeline(EXPLORE_RELAYS, {
+  useTimeline(DEFAULT_RELAYS, {
     kinds: [BLOSSOM_ADVERTIZEMENT_KIND],
   });
 
-  const handleSubmit: FormEventHandler = (e) => {
-    e.preventDefault();
-    if (server.trim()) onSubmit(server);
-    setServer("");
+  const [submitting, setSubmitting] = useState(false);
+  const handleSubmit: FormEventHandler = async (e) => {
+    try {
+      setSubmitting(true);
+      e.preventDefault();
+      if (server.trim()) await onSubmit(server);
+      setServer("");
+    } catch (error) {
+      if (error instanceof Error)
+        toast({ status: "error", description: error.message });
+    }
+    setSubmitting(false);
   };
 
   const servers = useStoreQuery(TimelineQuery, [
@@ -50,7 +71,7 @@ function AddServerForm({ onSubmit }: { onSubmit: (server: string) => void }) {
           </option>
         ))}
       </datalist>
-      <Button type="submit" colorScheme="pink">
+      <Button type="submit" colorScheme="pink" isLoading={submitting}>
         Add
       </Button>
     </Flex>
@@ -62,8 +83,21 @@ function ServerCard({
   onRemove,
 }: {
   server: string;
-  onRemove: () => void;
+  onRemove: (server: string) => void | Promise<void>;
 }) {
+  const toast = useToast();
+  const [removing, setRemoving] = useState(false);
+  const remove = async () => {
+    try {
+      setRemoving(true);
+      await onRemove(server);
+    } catch (error) {
+      if (error instanceof Error)
+        toast({ status: "error", description: error.message });
+    }
+    setRemoving(true);
+  };
+
   return (
     <Flex
       gap="2"
@@ -80,7 +114,7 @@ function ServerCard({
         </Link>
       </Flex>
 
-      <CloseButton ml="auto" onClick={onRemove} />
+      <CloseButton ml="auto" onClick={remove} isDisabled={removing} />
     </Flex>
   );
 }
@@ -88,9 +122,13 @@ function ServerCard({
 export default function ServerPicker({
   servers,
   onChange,
+  onAdd,
+  onRemove,
 }: {
   servers: string[];
-  onChange: (servers: string[]) => void;
+  onAdd?: (server: string) => void | Promise<void>;
+  onRemove?: (server: string) => void | Promise<void>;
+  onChange?: (servers: string[]) => void | Promise<void>;
 }) {
   return (
     <>
@@ -100,12 +138,21 @@ export default function ServerPicker({
             <ServerCard
               key={server}
               server={server}
-              onRemove={() => onChange(servers.filter((s) => s !== server))}
+              onRemove={async () => {
+                if (onRemove) await onRemove(server);
+                if (onChange)
+                  await onChange(servers.filter((s) => s !== server));
+              }}
             />
           ))}
         </Flex>
       )}
-      <AddServerForm onSubmit={(server) => onChange([...servers, server])} />
+      <AddServerForm
+        onSubmit={async (server) => {
+          if (onAdd) await onAdd(server);
+          if (onChange) await onChange([...servers, server]);
+        }}
+      />
 
       <Text color="GrayText" fontSize="sm">
         Find more servers at{" "}
