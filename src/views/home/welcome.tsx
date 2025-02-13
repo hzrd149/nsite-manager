@@ -17,7 +17,7 @@ export default function WelcomeView() {
       py="10"
       px="2"
     >
-      <Image src="/nsite.jpg" h="48" />
+      <Image src="/nsite.svg" h="48" />
       <Heading size="lg" mt="4">
         Welcome to nsite manager
       </Heading>

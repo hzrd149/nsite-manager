@@ -1,7 +1,10 @@
 import dayjs from "dayjs";
 import { Box, BoxProps } from "@chakra-ui/react";
 
-export default function Timestamp({ timestamp, ...props }: { timestamp: number } & Omit<BoxProps, "children">) {
+export default function Timestamp({
+  timestamp,
+  ...props
+}: { timestamp: number } & Omit<BoxProps, "children">) {
   const date = dayjs.unix(timestamp);
   const now = dayjs();
 
@@ -20,7 +23,12 @@ export default function Timestamp({ timestamp, ...props }: { timestamp: number }
   }
 
   return (
-    <Box as="time" dateTime={date.toISOString()} title={date.format("LLL")} {...props}>
+    <Box
+      as="time"
+      dateTime={date.toISOString()}
+      title={date.format("LLL")}
+      {...props}
+    >
       {display}
     </Box>
   );

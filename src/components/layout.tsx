@@ -53,7 +53,7 @@ function SideNav() {
       flexShrink={0}
     >
       <Flex gap="4" alignItems="center">
-        <Image w="20" src="/nsite.jpg" />
+        <Image w="20" src="/nsite.svg" />
         <Heading size="lg" py="2" as={RouterLink} to="/">
           Manager
         </Heading>
