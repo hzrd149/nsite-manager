@@ -34,7 +34,7 @@ root.render(
     <QueryStoreProvider queryStore={queryStore}>
       <AccountsProvider manager={accountManager}>
         <FactoryProvider factory={factory}>
-          <BrowserRouter>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
             <Routes>
               <Route Component={Layout}>
                 <Route path="/" Component={HomeView} />
