@@ -28,4 +28,13 @@ accountManager.accounts$.subscribe(async () => {
   localStorage.setItem("accounts", JSON.stringify(accountManager.toJSON()));
 });
 
+// set active account
+if (localStorage.active) accountManager.setActive(localStorage.active);
+
+// save changes
+accountManager.active$.subscribe((account) => {
+  if (account) localStorage.setItem("active", account.id);
+  else localStorage.removeItem("active");
+});
+
 export default accountManager;

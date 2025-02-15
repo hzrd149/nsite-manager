@@ -38,7 +38,7 @@ root.render(
             <Routes>
               <Route Component={Layout}>
                 <Route path="/" Component={HomeView} />
-                <Route path="/files" Component={FilesView} />
+                <Route path="/files/*" Component={FilesView} />
                 <Route path="/settings/account" Component={SettingsView} />
                 <Route path="/settings/app" Component={AppSettingsView} />
                 <Route path="/signin" Component={SigninView} />

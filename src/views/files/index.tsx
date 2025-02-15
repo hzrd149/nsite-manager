@@ -5,6 +5,7 @@ import {
   BreadcrumbLink,
   Button,
   Flex,
+  Link,
   Spacer,
   Spinner,
   Table,
@@ -15,14 +16,19 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react";
-import { getReplaceableIdentifier, getTagValue } from "applesauce-core/helpers";
 import {
   useActiveAccount,
   useObservable,
   useStoreQuery,
 } from "applesauce-react/hooks";
-import { Navigate, Link as RouterLink } from "react-router-dom";
+import {
+  Navigate,
+  Link as RouterLink,
+  useLocation,
+  useParams,
+} from "react-router-dom";
 import { Filter, NostrEvent } from "nostr-tools";
+import { join, resolve, extname } from "path-browserify";
 
 import useTimeline from "../../hooks/use-timeline";
 import useMailboxes from "../../hooks/use-mailboxes";
@@ -30,15 +36,29 @@ import { NSITE_KIND } from "../../const";
 import { TimelineQuery } from "applesauce-core/queries";
 import Timestamp from "../../components/timestamp";
 import { formatBytes } from "../../helpers/number";
+import {
+  DirFile,
+  DirFolder,
+  getDirectoryFromEvents,
+} from "../../helpers/directory";
+import useServers from "../../hooks/use-servers";
 
-type File = { name: string; sha256: string; modified: number; author: string };
-
-function FileRow({ file }: { file: File }) {
+function FileRow({ file, server }: { file: DirFile; server?: string }) {
   const size = 0;
 
   return (
     <Tr>
-      <Td>{file.name}</Td>
+      <Td>
+        <Link
+          href={
+            server &&
+            new URL(file.sha256 + extname(file.name), server).toString()
+          }
+          isExternal
+        >
+          📄 {file.name}
+        </Link>
+      </Td>
       <Td fontFamily="monospace">{file.sha256}</Td>
       <Td isNumeric>{size ? formatBytes(size) : "?"}</Td>
       <Td isNumeric>
@@ -47,16 +67,43 @@ function FileRow({ file }: { file: File }) {
     </Tr>
   );
 }
+function FolderRow({ folder }: { folder: DirFolder }) {
+  const location = useLocation();
 
-function FilesTable({ events, path }: { path: string; events: NostrEvent[] }) {
-  const folder = events
-    .map((e) => ({
-      name: getReplaceableIdentifier(e),
-      sha256: getTagValue(e, "x")!,
-      modified: e.created_at,
-      author: e.pubkey,
-    }))
-    .filter(({ name }) => name.startsWith(path))
+  return (
+    <Tr>
+      <Td>
+        <Link as={RouterLink} to={join(location.pathname, folder.name, "/")}>
+          📁 {folder.name}
+        </Link>
+      </Td>
+      <Td fontFamily="monospace"></Td>
+      <Td isNumeric>{folder.children} files</Td>
+      <Td isNumeric>
+        <Timestamp timestamp={folder.modified} />
+      </Td>
+    </Tr>
+  );
+}
+
+function FilesTable({
+  events,
+  dir,
+  server,
+}: {
+  dir: string;
+  events: NostrEvent[];
+  server?: string;
+}) {
+  const entries = useMemo(
+    () => getDirectoryFromEvents(events, dir),
+    [dir, events],
+  );
+  const folders = entries
+    .filter((f) => f.type === "folder")
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const files = entries
+    .filter((f) => f.type === "file")
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
@@ -71,8 +118,27 @@ function FilesTable({ events, path }: { path: string; events: NostrEvent[] }) {
           </Tr>
         </Thead>
         <Tbody>
-          {folder.map((file) => (
-            <FileRow key={file.name} file={file} />
+          {dir !== "/" && (
+            <Tr>
+              <Td>
+                <Link
+                  as={RouterLink}
+                  to={resolve(location.pathname, "..") + "/"}
+                  relative="route"
+                >
+                  📁 ../
+                </Link>
+              </Td>
+              <Td></Td>
+              <Td></Td>
+              <Td></Td>
+            </Tr>
+          )}
+          {folders.map((folder) => (
+            <FolderRow key={folder.name} folder={folder} />
+          ))}
+          {files.map((file) => (
+            <FileRow key={file.name} file={file} server={server} />
           ))}
         </Tbody>
       </Table>
@@ -84,6 +150,10 @@ export default function FilesView() {
   const account = useActiveAccount();
   if (!account) return <Navigate to="/signin" />;
 
+  const params = useParams();
+  const dir = "/" + params["*"];
+  console.log("viewing", dir);
+
   const filter: Filter = useMemo(
     () => ({
       kinds: [NSITE_KIND],
@@ -93,6 +163,7 @@ export default function FilesView() {
   );
 
   const mailboxes = useMailboxes();
+  const servers = useServers();
   const timeline = useTimeline(mailboxes?.inboxes, [filter]);
   const loading = useObservable(timeline?.loading$);
 
@@ -108,11 +179,26 @@ export default function FilesView() {
             </BreadcrumbLink>
           </BreadcrumbItem>
 
-          <BreadcrumbItem isCurrentPage>
+          <BreadcrumbItem isCurrentPage={dir === "/"}>
             <BreadcrumbLink as={RouterLink} to="/files">
               Files
             </BreadcrumbLink>
           </BreadcrumbItem>
+
+          {dir !== "/" &&
+            dir
+              .split("/")
+              .slice(1, -1)
+              .map((name, i, arr) => (
+                <BreadcrumbItem key={name} isCurrentPage={i === arr.length - 1}>
+                  <BreadcrumbLink
+                    as={RouterLink}
+                    to={"/files/" + arr.slice(0, i + 1).join("/") + "/"}
+                  >
+                    {name}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              ))}
         </Breadcrumb>
 
         <Spacer />
@@ -129,7 +215,15 @@ export default function FilesView() {
         )}
       </Flex>
 
-      {events ? <FilesTable path="/" events={events} /> : <Spinner />}
+      {events ? (
+        <FilesTable
+          dir={dir}
+          events={events}
+          server={servers?.[0]?.toString()}
+        />
+      ) : (
+        <Spinner />
+      )}
     </Flex>
   );
 }
