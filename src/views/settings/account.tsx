@@ -25,7 +25,7 @@ import {
   removeOutboxRelay,
   addBlossomServerTag,
   removeBlossomServerTag,
-} from "applesauce-factory/operations";
+} from "applesauce-factory/operations/tag";
 import {
   BLOSSOM_SERVER_LIST_KIND,
   getBlossomServersFromList,
@@ -64,7 +64,7 @@ export default function SettingsView() {
     : LOOKUP_RELAYS;
 
   const addRelay = async (relay: string) => {
-    const draft = await factory.modifyList(
+    const draft = await factory.modifyTags(
       mailboxes || { kind: kinds.RelayList },
       { public: addOutboxRelay(relay) },
     );
@@ -72,7 +72,7 @@ export default function SettingsView() {
     await lastValueFrom(rxNostr.send(signed, { on: { relays: outboxes } }));
   };
   const removeRelay = async (relay: string) => {
-    const draft = await factory.modifyList(
+    const draft = await factory.modifyTags(
       mailboxes || { kind: kinds.RelayList },
       { public: removeOutboxRelay(relay) },
     );
@@ -85,7 +85,7 @@ export default function SettingsView() {
     account.pubkey,
   ]);
   const addServer = async (server: string) => {
-    const draft = await factory.modifyList(
+    const draft = await factory.modifyTags(
       servers || { kind: BLOSSOM_SERVER_LIST_KIND },
       { public: addBlossomServerTag(server) },
     );
@@ -93,7 +93,7 @@ export default function SettingsView() {
     await lastValueFrom(rxNostr.send(signed, { on: { relays: outboxes } }));
   };
   const removeServer = async (server: string) => {
-    const draft = await factory.modifyList(
+    const draft = await factory.modifyTags(
       servers || { kind: BLOSSOM_SERVER_LIST_KIND },
       { public: removeBlossomServerTag(server) },
     );
