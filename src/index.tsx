@@ -36,12 +36,13 @@ root.render(
         <FactoryProvider factory={factory}>
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <Routes>
+              <Route path="/signin" Component={SigninView} />
               <Route Component={Layout}>
                 <Route path="/" Component={HomeView} />
                 <Route path="/files/*" Component={FilesView} />
                 <Route path="/settings/account" Component={SettingsView} />
                 <Route path="/settings/app" Component={AppSettingsView} />
-                <Route path="/signin" Component={SigninView} />
+                <Route path="/add" Component={SigninView} />
                 <Route path="/explore" Component={ExploreSites} />
               </Route>
             </Routes>

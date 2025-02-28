@@ -6,7 +6,7 @@ import {
   IconButton,
   Image,
 } from "@chakra-ui/react";
-import { useObservable } from "applesauce-react/hooks";
+import { useActiveAccount, useObservable } from "applesauce-react/hooks";
 import { SettingsIcon } from "@chakra-ui/icons";
 import { Link as RouterLink, Outlet, useNavigate } from "react-router-dom";
 
@@ -14,6 +14,7 @@ import accountManager from "../services/accounts";
 import UserAvatar from "./user-avatar";
 import { IAccount } from "applesauce-accounts";
 import UserName from "./user-name";
+import WelcomeView from "../views/home/welcome";
 
 function AccountItem({ account }: { account: IAccount }) {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ function SideNav() {
           ms="auto"
         />
       </Flex>
-      <Button colorScheme="pink" as={RouterLink} to="/signin">
+      <Button colorScheme="pink" as={RouterLink} to="/add">
         Add site
       </Button>
       <Divider />
@@ -78,6 +79,9 @@ function SideNav() {
 }
 
 export default function Layout() {
+  const account = useActiveAccount();
+  if (!account) return <WelcomeView />;
+
   return (
     <Flex w="full" h="full">
       <SideNav />

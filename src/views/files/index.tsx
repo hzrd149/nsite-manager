@@ -1,20 +1,12 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   Button,
   Flex,
-  Link,
   Spacer,
   Spinner,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
 } from "@chakra-ui/react";
 import {
   useActiveAccount,
@@ -24,131 +16,30 @@ import {
 import {
   Navigate,
   Link as RouterLink,
-  useLocation,
+  useNavigate,
   useParams,
 } from "react-router-dom";
-import { Filter, NostrEvent } from "nostr-tools";
-import { join, resolve, extname } from "path-browserify";
+import { Filter } from "nostr-tools";
 
 import useTimeline from "../../hooks/use-timeline";
 import useMailboxes from "../../hooks/use-mailboxes";
 import { NSITE_KIND } from "../../const";
 import { TimelineQuery } from "applesauce-core/queries";
-import Timestamp from "../../components/timestamp";
-import { formatBytes } from "../../helpers/number";
-import {
-  DirFile,
-  DirFolder,
-  getDirectoryFromEvents,
-} from "../../helpers/directory";
 import useServers from "../../hooks/use-servers";
-
-function FileRow({ file, server }: { file: DirFile; server?: string }) {
-  const size = 0;
-
-  return (
-    <Tr>
-      <Td>
-        <Link
-          href={
-            server &&
-            new URL(file.sha256 + extname(file.name), server).toString()
-          }
-          isExternal
-        >
-          📄 {file.name}
-        </Link>
-      </Td>
-      <Td fontFamily="monospace">{file.sha256}</Td>
-      <Td isNumeric>{size ? formatBytes(size) : "?"}</Td>
-      <Td isNumeric>
-        <Timestamp timestamp={file.modified} />
-      </Td>
-    </Tr>
-  );
-}
-function FolderRow({ folder }: { folder: DirFolder }) {
-  const location = useLocation();
-
-  return (
-    <Tr>
-      <Td>
-        <Link as={RouterLink} to={join(location.pathname, folder.name, "/")}>
-          📁 {folder.name}
-        </Link>
-      </Td>
-      <Td fontFamily="monospace"></Td>
-      <Td isNumeric>{folder.children} files</Td>
-      <Td isNumeric>
-        <Timestamp timestamp={folder.modified} />
-      </Td>
-    </Tr>
-  );
-}
-
-function FilesTable({
-  events,
-  dir,
-  server,
-}: {
-  dir: string;
-  events: NostrEvent[];
-  server?: string;
-}) {
-  const entries = useMemo(
-    () => getDirectoryFromEvents(events, dir),
-    [dir, events],
-  );
-  const folders = entries
-    .filter((f) => f.type === "folder")
-    .sort((a, b) => a.name.localeCompare(b.name));
-  const files = entries
-    .filter((f) => f.type === "file")
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  return (
-    <TableContainer overflowY="auto">
-      <Table variant="striped" size="sm">
-        <Thead>
-          <Tr>
-            <Th>Name</Th>
-            <Th>Hash</Th>
-            <Th isNumeric>Size</Th>
-            <Th isNumeric>Modified</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {dir !== "/" && (
-            <Tr>
-              <Td>
-                <Link
-                  as={RouterLink}
-                  to={resolve(location.pathname, "..") + "/"}
-                  relative="route"
-                >
-                  📁 ../
-                </Link>
-              </Td>
-              <Td></Td>
-              <Td></Td>
-              <Td></Td>
-            </Tr>
-          )}
-          {folders.map((folder) => (
-            <FolderRow key={folder.name} folder={folder} />
-          ))}
-          {files.map((file) => (
-            <FileRow key={file.name} file={file} server={server} />
-          ))}
-        </Tbody>
-      </Table>
-    </TableContainer>
-  );
-}
+import FilesTable from "../../components/files/table";
+import {
+  FilesCwdContext,
+  FilesSelectionContext,
+} from "../../components/files/context";
+import { join } from "path-browserify";
+import useToggleArray from "../../hooks/use-toggle-array";
+import FileToolbar from "../../components/files/toolbar";
 
 export default function FilesView() {
   const account = useActiveAccount();
   if (!account) return <Navigate to="/signin" />;
+
+  const navigate = useNavigate();
 
   const params = useParams();
   const dir = "/" + params["*"];
@@ -168,6 +59,18 @@ export default function FilesView() {
   const loading = useObservable(timeline?.loading$);
 
   const events = useStoreQuery(TimelineQuery, [filter]);
+
+  const selected = useToggleArray();
+  useEffect(() => {
+    // reset the selection array when dir changes
+    selected.replace([]);
+  }, [dir]);
+
+  const cwd = {
+    path: dir,
+    link: (p: string) => join("/files", p),
+    change: (p: string) => navigate(join("/files", p)),
+  };
 
   return (
     <Flex h="full" w="full" overflow="hidden" direction="column">
@@ -216,11 +119,16 @@ export default function FilesView() {
       </Flex>
 
       {events ? (
-        <FilesTable
-          dir={dir}
-          events={events}
-          server={servers?.[0]?.toString()}
-        />
+        <FilesCwdContext.Provider value={cwd}>
+          <FilesSelectionContext value={selected}>
+            <FileToolbar />
+            <FilesTable
+              dir={dir}
+              events={events}
+              server={servers?.[0]?.toString()}
+            />
+          </FilesSelectionContext>
+        </FilesCwdContext.Provider>
       ) : (
         <Spinner />
       )}

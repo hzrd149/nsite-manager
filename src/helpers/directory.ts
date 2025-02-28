@@ -10,6 +10,7 @@ export type DirFolder = {
 export type DirFile = {
   type: "file";
   name: string;
+  path: string;
   sha256: string;
   event: NostrEvent;
   modified: number;
@@ -28,7 +29,8 @@ export function getDirectoryFromEvents(events: NostrEvent[], path: string) {
 
   const dir = path === "/" ? [] : path.replace(/(^\/|\/$)/g, "").split("/");
   for (const event of events) {
-    const filePath = getReplaceableIdentifier(event).split("/").slice(1);
+    const pathStr = getReplaceableIdentifier(event);
+    const filePath = pathStr.split("/").slice(1);
 
     if (filePath.length > dir.length && isInFolder(filePath, dir)) {
       const name = filePath[dir.length];
@@ -38,7 +40,14 @@ export function getDirectoryFromEvents(events: NostrEvent[], path: string) {
         // file
         const sha256 = getTagValue(event, "x")!;
         if (sha256)
-          files.set(name, { type: "file", name, modified, sha256, event });
+          files.set(name, {
+            type: "file",
+            name,
+            modified,
+            sha256,
+            event,
+            path: pathStr,
+          });
       } else {
         // folder
         if (folders.has(name)) {
