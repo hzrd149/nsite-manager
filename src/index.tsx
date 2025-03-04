@@ -28,6 +28,8 @@ import SigninView from "./views/signin";
 import SettingsView from "./views/settings/account";
 import FilesView from "./views/files";
 import AppSettingsView from "./views/settings/app";
+import SaveFileView from "./views/save";
+import LoadFileView from "./views/load";
 
 root.render(
   <ChakraProvider>
@@ -37,6 +39,11 @@ root.render(
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <Routes>
               <Route path="/signin" Component={SigninView} />
+
+              {/* pickers */}
+              <Route path="/save" Component={SaveFileView} />
+              <Route path="/load" Component={LoadFileView} />
+
               <Route Component={Layout}>
                 <Route path="/" Component={HomeView} />
                 <Route path="/files/*" Component={FilesView} />

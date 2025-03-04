@@ -105,11 +105,11 @@ export default function SettingsView() {
     <Flex
       h="full"
       w="full"
-      overflow="auto"
+      overflow="hidden"
       direction="column"
       alignItems="flex-start"
     >
-      <Flex p="4">
+      <Flex p="4" w="full">
         <Breadcrumb fontSize="lg">
           <BreadcrumbItem>
             <BreadcrumbLink as={RouterLink} to="/">
@@ -131,9 +131,9 @@ export default function SettingsView() {
         px="4"
         pb="10"
         overflow="auto"
-        w="Full"
         direction="column"
         h="full"
+        w="full"
         gap="2"
       >
         <Box>
@@ -172,7 +172,7 @@ export default function SettingsView() {
           </Text>
         </Box>
 
-        <Alert status="info" whiteSpace="pre-wrap" w="auto">
+        <Alert status="info" whiteSpace="pre-wrap" w="auto" flexShrink={0}>
           <AlertIcon />
           These are your{" "}
           <Link

@@ -19,7 +19,7 @@ export default function AppSettingsView() {
 
   return (
     <Flex h="full" w="full" overflow="auto" direction="column">
-      <Flex p="4">
+      <Flex p="4" w="full">
         <Breadcrumb fontSize="lg">
           <BreadcrumbItem>
             <BreadcrumbLink as={RouterLink} to="/">
@@ -40,8 +40,8 @@ export default function AppSettingsView() {
       <Flex
         px="4"
         pb="10"
-        overflow="auto"
-        w="Full"
+        overflow="hidden"
+        w="full"
         direction="column"
         h="full"
         gap="2"

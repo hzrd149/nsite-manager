@@ -43,7 +43,6 @@ export default function FilesView() {
 
   const params = useParams();
   const dir = "/" + params["*"];
-  console.log("viewing", dir);
 
   const filter: Filter = useMemo(
     () => ({
