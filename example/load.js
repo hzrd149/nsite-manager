@@ -40,7 +40,8 @@ function openCenteredPopup(url, title, w, h) {
   return newWindow;
 }
 
-const pickerURL = "http://localhost:5173/load";
+const pickerURL =
+  "https://npub125vreuyn6fqg6d6fz6dhmskv9u4qz5uf5rhdg3ymagqwz654quks8g8agm.nsite.lol/load";
 
 function pickFile() {
   const picker = openCenteredPopup(pickerURL, "Pick file", 800, 600);
