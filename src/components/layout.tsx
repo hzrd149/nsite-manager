@@ -1,10 +1,12 @@
 import {
+  Box,
   Button,
   Divider,
   Flex,
   Heading,
   IconButton,
   Image,
+  Text,
 } from "@chakra-ui/react";
 import { useActiveAccount, useObservable } from "applesauce-react/hooks";
 import { SettingsIcon } from "@chakra-ui/icons";
@@ -15,9 +17,11 @@ import UserAvatar from "./user-avatar";
 import { IAccount } from "applesauce-accounts";
 import UserName from "./user-name";
 import WelcomeView from "../views/home/welcome";
+import useProfile from "../hooks/use-profile";
 
 function AccountItem({ account }: { account: IAccount }) {
   const navigate = useNavigate();
+  const profile = useProfile({ pubkey: account.pubkey });
 
   return (
     <Flex
@@ -36,7 +40,12 @@ function AccountItem({ account }: { account: IAccount }) {
       tabIndex={0}
     >
       <UserAvatar pubkey={account.pubkey} />
-      <UserName pubkey={account.pubkey} isTruncated fontWeight="bold" />
+      <Box>
+        <UserName pubkey={account.pubkey} isTruncated fontWeight="bold" />
+        <Text fontSize="sm" noOfLines={1}>
+          {profile?.about}
+        </Text>
+      </Box>
     </Flex>
   );
 }

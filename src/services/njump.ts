@@ -1,8 +1,4 @@
-import {
-  NostrConnectSigner,
-  PasswordSigner,
-  SimpleSigner,
-} from "applesauce-signers";
+import { NostrConnectSigner, PasswordSigner } from "applesauce-signers";
 import { createNostrConnectConnection } from "./nostr-connect-connection";
 import {
   NostrConnectAccount,
