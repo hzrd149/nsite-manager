@@ -12,6 +12,7 @@ const njumpLink = new URL("https://start.njump.me");
 njumpLink.searchParams.append("an", "nsite manager");
 njumpLink.searchParams.append("at", "web");
 njumpLink.searchParams.append("ac", location.href);
+njumpLink.searchParams.append("asf", "yes");
 
 export async function createAccountFromCredentials(credentials: string) {
   if (credentials.startsWith("bunker://")) {
