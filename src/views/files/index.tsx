@@ -19,7 +19,7 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import { Filter } from "nostr-tools";
+import { Filter, kinds } from "nostr-tools";
 
 import useTimeline from "../../hooks/use-timeline";
 import useMailboxes from "../../hooks/use-mailboxes";
@@ -34,6 +34,7 @@ import {
 import { join } from "path-browserify";
 import useToggleArray from "../../hooks/use-toggle-array";
 import FileToolbar from "../../components/files/toolbar";
+import useRequest from "../../hooks/use-request";
 
 export default function FilesView() {
   const account = useActiveAccount();
@@ -54,8 +55,15 @@ export default function FilesView() {
 
   const mailboxes = useMailboxes();
   const servers = useServers();
-  const timeline = useTimeline(mailboxes?.inboxes, [filter]);
+  const timeline = useTimeline(mailboxes?.outboxes, [filter]);
   const loading = useObservable(timeline?.loading$);
+
+  // load delete events
+  useRequest(mailboxes?.outboxes, {
+    kinds: [kinds.EventDeletion],
+    authors: [account.pubkey],
+    "#k": [String(NSITE_KIND)],
+  });
 
   const events = useStoreQuery(TimelineQuery, [filter]);
 
@@ -73,7 +81,7 @@ export default function FilesView() {
 
   return (
     <Flex h="full" w="full" overflow="hidden" direction="column">
-      <Flex p="4">
+      <Flex py="2" ps="4" pe="2">
         <Breadcrumb fontSize="lg">
           <BreadcrumbItem>
             <BreadcrumbLink as={RouterLink} to="/">

@@ -12,7 +12,8 @@ import {
   StatLabel,
   StatNumber,
 } from "@chakra-ui/react";
-import { Filter } from "nostr-tools";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
+import { Filter, kinds } from "nostr-tools";
 import { Navigate, Link as RouterLink } from "react-router-dom";
 import {
   useActiveAccount,
@@ -30,7 +31,7 @@ import useTimeline from "../../hooks/use-timeline";
 import useServers from "../../hooks/use-servers";
 import { nsiteGateway } from "../../services/settings";
 import { createGatewayURL } from "../../helpers/url";
-import { ExternalLinkIcon } from "@chakra-ui/icons";
+import useRequest from "../../hooks/use-request";
 
 export default function DashboardView() {
   const gateway = useObservable(nsiteGateway);
@@ -47,7 +48,14 @@ export default function DashboardView() {
 
   const mailboxes = useMailboxes();
   const servers = useServers();
-  useTimeline(mailboxes?.inboxes, [filter]);
+  useTimeline(mailboxes?.outboxes, [filter]);
+
+  // load delete events
+  useRequest(mailboxes?.outboxes, {
+    kinds: [kinds.EventDeletion],
+    authors: [account.pubkey],
+    "#k": [String(NSITE_KIND)],
+  });
 
   const events = useStoreQuery(TimelineQuery, [filter]);
 
