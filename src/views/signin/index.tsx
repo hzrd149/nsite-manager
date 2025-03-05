@@ -9,14 +9,38 @@ import {
   Input,
   Link,
   Spacer,
+  useToast,
 } from "@chakra-ui/react";
 import { ExtensionAccount } from "applesauce-accounts/accounts";
 import { ExtensionSigner } from "applesauce-signers";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+
 import accountManager from "../../services/accounts";
+import { createAccountFromCredentials, njumpLink } from "../../services/njump";
+import { useState } from "react";
 
 export default function SigninView() {
+  const toast = useToast();
   const navigate = useNavigate();
+  const [credentials, setCredentials] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const signin = async () => {
+    setLoading(true);
+    try {
+      const account = await createAccountFromCredentials(credentials);
+
+      if (account) {
+        accountManager.addAccount(account);
+        accountManager.setActive(account);
+        navigate("/");
+      }
+    } catch (error) {
+      if (error instanceof Error)
+        toast({ status: "error", description: error.message });
+    }
+    setLoading(false);
+  };
 
   const extension = async () => {
     const signer = new ExtensionSigner();
@@ -37,7 +61,11 @@ export default function SigninView() {
 
       <FormControl>
         <FormLabel>Nostr login</FormLabel>
-        <Input placeholder="nostr address, nsec, bunker://" />
+        <Input
+          placeholder="nsec, ncryptsec, bunker://"
+          value={credentials}
+          onChange={(e) => setCredentials(e.target.value)}
+        />
       </FormControl>
 
       <ButtonGroup colorScheme="pink">
@@ -45,16 +73,16 @@ export default function SigninView() {
           Use extension
         </Button>
         <Spacer />
-        <Button
-          as={Link}
-          href="https://start.njump.me/"
-          target="_blank"
-          variant="link"
-          p="2"
-        >
+        <Button as={Link} href={njumpLink.toString()} variant="link" p="2">
           Create account
         </Button>
-        <Button>Signin</Button>
+        <Button
+          onClick={signin}
+          isLoading={loading}
+          isDisabled={credentials.length <= 4}
+        >
+          Signin
+        </Button>
       </ButtonGroup>
 
       <Button
