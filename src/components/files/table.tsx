@@ -22,8 +22,13 @@ import {
 import { FilesSelectionContext, useFolderCwd } from "./context";
 import { formatBytes } from "../../helpers/number";
 import Timestamp from "../timestamp";
+import { createGatewayURL } from "../../helpers/url";
+import { useActiveAccount, useObservable } from "applesauce-react/hooks";
+import { nsiteGateway } from "../../services/settings";
 
 function FileRow({ file, server }: { file: DirFile; server?: string }) {
+  const account = useActiveAccount();
+  const gateway = useObservable(nsiteGateway);
   const selection = useContext(FilesSelectionContext);
   const size = 0;
 
@@ -39,16 +44,23 @@ function FileRow({ file, server }: { file: DirFile; server?: string }) {
       )}
       <Td pl="0">
         <Link
+          href={createGatewayURL(account!.pubkey, gateway, file.path)}
+          isExternal
+        >
+          📄 {file.name}
+        </Link>
+      </Td>
+      <Td fontFamily="monospace">
+        <Link
           href={
             server &&
             new URL(file.sha256 + extname(file.name), server).toString()
           }
           isExternal
         >
-          📄 {file.name}
+          {file.sha256}
         </Link>
       </Td>
-      <Td fontFamily="monospace">{file.sha256}</Td>
       <Td isNumeric>{size ? formatBytes(size) : "?"}</Td>
       <Td isNumeric>
         <Timestamp timestamp={file.modified} />

@@ -61,7 +61,7 @@ function SideNav() {
         <IconButton
           as={RouterLink}
           to="/settings/app"
-          icon={<SettingsIcon />}
+          icon={<SettingsIcon boxSize={5} />}
           aria-label="Settings"
           ms="auto"
         />

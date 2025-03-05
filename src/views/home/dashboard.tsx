@@ -6,6 +6,7 @@ import {
   ButtonGroup,
   Flex,
   Heading,
+  Link,
   SimpleGrid,
   Stat,
   StatLabel,
@@ -13,7 +14,11 @@ import {
 } from "@chakra-ui/react";
 import { Filter } from "nostr-tools";
 import { Navigate, Link as RouterLink } from "react-router-dom";
-import { useActiveAccount, useStoreQuery } from "applesauce-react/hooks";
+import {
+  useActiveAccount,
+  useObservable,
+  useStoreQuery,
+} from "applesauce-react/hooks";
 import { ReadonlyAccount } from "applesauce-accounts/accounts";
 import { TimelineQuery } from "applesauce-core/queries";
 
@@ -23,8 +28,12 @@ import { NSITE_KIND } from "../../const";
 import useMailboxes from "../../hooks/use-mailboxes";
 import useTimeline from "../../hooks/use-timeline";
 import useServers from "../../hooks/use-servers";
+import { nsiteGateway } from "../../services/settings";
+import { createGatewayURL } from "../../helpers/url";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
 
 export default function DashboardView() {
+  const gateway = useObservable(nsiteGateway);
   const account = useActiveAccount();
   if (!account) return <Navigate to="/signin" />;
 
@@ -52,6 +61,14 @@ export default function DashboardView() {
         </Heading>
 
         <ButtonGroup ml="auto">
+          <Button
+            as={Link}
+            href={createGatewayURL(account.pubkey, gateway)}
+            isExternal
+            leftIcon={<ExternalLinkIcon boxSize={5} />}
+          >
+            Open
+          </Button>
           <Button colorScheme="pink" as={RouterLink} to="/settings/account">
             Settings
           </Button>

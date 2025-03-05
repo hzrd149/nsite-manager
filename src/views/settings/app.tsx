@@ -5,17 +5,23 @@ import {
   BreadcrumbLink,
   Flex,
   Heading,
+  Input,
   Text,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import { useObservable } from "applesauce-react/hooks";
 
 import RelayPicker from "../../components/relay-picker";
-import { defaultRelays, lookupRelays } from "../../services/settings";
+import {
+  defaultRelays,
+  lookupRelays,
+  nsiteGateway,
+} from "../../services/settings";
 
 export default function AppSettingsView() {
   const relays = useObservable(defaultRelays);
   const lookup = useObservable(lookupRelays);
+  const gateway = useObservable(nsiteGateway);
 
   return (
     <Flex h="full" w="full" overflow="auto" direction="column">
@@ -58,6 +64,21 @@ export default function AppSettingsView() {
           <RelayPicker
             relays={relays}
             onChange={(arr) => defaultRelays.next(arr)}
+          />
+        </Flex>
+
+        <Box mt="4">
+          <Heading>Gateway</Heading>
+          <Text fontStyle="italic">
+            The gateway server that is used to view the static site
+          </Text>
+        </Box>
+
+        <Flex direction="column" maxW="lg" gap="2">
+          <Input
+            type="url"
+            value={gateway}
+            onChange={(e) => nsiteGateway.next(e.target.value)}
           />
         </Flex>
 

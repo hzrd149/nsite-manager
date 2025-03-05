@@ -1,7 +1,7 @@
 import { safeParse } from "applesauce-core/helpers";
 import { BehaviorSubject } from "rxjs";
 
-import { DEFAULT_RELAYS, LOOKUP_RELAYS } from "../const";
+import { DEFAULT_GATEWAY, DEFAULT_RELAYS, LOOKUP_RELAYS } from "../const";
 
 // load settings from local storage
 const defaultRelays = new BehaviorSubject<string[]>(
@@ -9,6 +9,9 @@ const defaultRelays = new BehaviorSubject<string[]>(
 );
 const lookupRelays = new BehaviorSubject<string[]>(
   safeParse(localStorage.lookup) ?? LOOKUP_RELAYS,
+);
+const nsiteGateway = new BehaviorSubject<string>(
+  safeParse(localStorage.gateway) ?? DEFAULT_GATEWAY,
 );
 
 // save changes
@@ -18,5 +21,6 @@ defaultRelays.subscribe(
 lookupRelays.subscribe(
   (relays) => (localStorage.lookup = JSON.stringify(relays)),
 );
+nsiteGateway.subscribe((gateway) => (localStorage.gateway = gateway));
 
-export { lookupRelays, defaultRelays };
+export { lookupRelays, defaultRelays, nsiteGateway };

@@ -11,4 +11,6 @@ export const DEFAULT_RELAYS = [
   "wss://nostrue.com/",
 ].map(normalizeURL);
 
+export const DEFAULT_GATEWAY = "https://nsite.lol";
+
 export const LOOKUP_RELAYS = ["wss://purplepag.es/"].map(normalizeURL);
