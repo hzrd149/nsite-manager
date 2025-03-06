@@ -1,8 +1,9 @@
-import { useContext } from "react";
+import { useContext, useRef, useState } from "react";
 import {
   Button,
   ButtonGroup,
   Flex,
+  Input,
   Text,
   useDisclosure,
 } from "@chakra-ui/react";
@@ -12,8 +13,9 @@ import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import RemoveModal from "../remove-modal";
 import { useActiveAccount, useEventStore } from "applesauce-react/hooks";
 import { NSITE_KIND } from "../../const";
+import AddModal from "../add-modal";
 
-export default function FileToolbar() {
+export default function FileToolbar({ directory }: { directory: string }) {
   const account = useActiveAccount()!;
   const selection = useContext(FilesSelectionContext);
   if (!selection) throw new Error("Mission selection context");
@@ -23,6 +25,8 @@ export default function FileToolbar() {
     .map((path) => eventStore.getReplaceable(NSITE_KIND, account.pubkey, path))
     .filter((e) => !!e);
 
+  const filesRef = useRef<HTMLInputElement | null>(null);
+  const [files, setFiles] = useState<FileList>();
   const removeModal = useDisclosure();
 
   return (
@@ -32,9 +36,20 @@ export default function FileToolbar() {
           <Text>{selection.selected.length} selected</Text>
         )}
 
+        <Input
+          type="file"
+          hidden
+          multiple
+          onChange={(e) => setFiles(e.target.files ?? undefined)}
+          ref={filesRef}
+        />
         <ButtonGroup size="sm" ms="auto">
           {selection.selected.length === 0 ? (
-            <Button leftIcon={<AddIcon />} colorScheme="pink">
+            <Button
+              leftIcon={<AddIcon />}
+              colorScheme="pink"
+              onClick={() => filesRef.current?.click()}
+            >
               Add
             </Button>
           ) : (
@@ -55,6 +70,16 @@ export default function FileToolbar() {
           events={selectedEvents}
           isOpen
           onClose={removeModal.onClose}
+        />
+      )}
+
+      {files && (
+        <AddModal
+          files={files}
+          onClose={() => setFiles(undefined)}
+          isOpen
+          size="2xl"
+          directory={directory}
         />
       )}
     </>

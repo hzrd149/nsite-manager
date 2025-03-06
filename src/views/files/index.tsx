@@ -128,7 +128,7 @@ export default function FilesView() {
       {events ? (
         <FilesCwdContext.Provider value={cwd}>
           <FilesSelectionContext value={selected}>
-            <FileToolbar />
+            <FileToolbar directory={dir} />
             <FilesTable
               dir={dir}
               events={events}
