@@ -23,6 +23,8 @@
     "dayjs": "^1.11.13",
     "framer-motion": "^12.4.3",
     "hash-sum": "^2.0.0",
+    "idb": "^8.0.2",
+    "nostr-feedback-button": "^0.1.2",
     "nostr-idb": "^2.2.0",
     "nostr-tools": "^2.10.4",
     "path-browserify": "^1.0.1",

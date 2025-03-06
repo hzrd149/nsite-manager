@@ -32,6 +32,7 @@ import useServers from "../../hooks/use-servers";
 import { nsiteGateway } from "../../services/settings";
 import { createGatewayURL } from "../../helpers/url";
 import useRequest from "../../hooks/use-request";
+import RelayEventTable from "./relay-event-table";
 
 export default function DashboardView() {
   const gateway = useObservable(nsiteGateway);
@@ -96,13 +97,10 @@ export default function DashboardView() {
             <StatNumber>{events?.length}</StatNumber>
           </Stat>
           <Stat>
-            <StatLabel>Relays</StatLabel>
-            <StatNumber>{mailboxes?.outboxes?.length}</StatNumber>
-          </Stat>
-          <Stat>
             <StatLabel>Servers</StatLabel>
             <StatNumber>{servers?.length}</StatNumber>
           </Stat>
+          <RelayEventTable />
         </SimpleGrid>
         <Button colorScheme="pink" size="lg" as={RouterLink} to="/files" w="xs">
           View Files

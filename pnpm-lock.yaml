@@ -47,6 +47,12 @@ importers:
       hash-sum:
         specifier: ^2.0.0
         version: 2.0.0
+      idb:
+        specifier: ^8.0.2
+        version: 8.0.2
+      nostr-feedback-button:
+        specifier: ^0.1.2
+        version: 0.1.2(typescript@5.7.3)
       nostr-idb:
         specifier: ^2.2.0
         version: 2.2.0(typescript@5.7.3)
@@ -1112,6 +1118,9 @@ packages:
   normalize-range@0.1.2:
     resolution: {integrity: sha512-bdok/XvKII3nUpklnV6P2hxtMNrCboOjAcyBuQnWEhO665FwrSNRxU+AqpsyvO6LgGYPspN+lu5CLtw4jPRKNA==}
     engines: {node: '>=0.10.0'}
+
+  nostr-feedback-button@0.1.2:
+    resolution: {integrity: sha512-BjTOAJK8DNuad+Iej85swdbXsT02Gz5N6vBK6XHTCgf9OgDji3QBbK6TyQ5+8bQ5X5/Fkc1aPn12zaXxIFGNMA==}
 
   nostr-idb@2.2.0:
     resolution: {integrity: sha512-hKvu+U7he+mkCGqgwPGvTDhb4D8Qt8C4KJ8fDtJwXwnLA6PBp2+bsAH4ewR62GvtD42PSeFQDXBIYttMb9X7nQ==}
@@ -2569,6 +2578,12 @@ snapshots:
   node-releases@2.0.19: {}
 
   normalize-range@0.1.2: {}
+
+  nostr-feedback-button@0.1.2(typescript@5.7.3):
+    dependencies:
+      nostr-tools: 2.10.4(typescript@5.7.3)
+    transitivePeerDependencies:
+      - typescript
 
   nostr-idb@2.2.0(typescript@5.7.3):
     dependencies:

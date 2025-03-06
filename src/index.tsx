@@ -7,6 +7,8 @@ import {
   FactoryProvider,
   QueryStoreProvider,
 } from "applesauce-react/providers";
+import { createFeedbackButton } from "nostr-feedback-button/feedback.js";
+import "nostr-feedback-button/styles.css";
 
 import Layout from "./components/layout";
 import accountManager from "./services/accounts";
@@ -31,12 +33,31 @@ import AppSettingsView from "./views/settings/app";
 import SaveFileView from "./views/save";
 import LoadFileView from "./views/load";
 
+import "./services/event-metadata";
+
+// add shout button to page
+createFeedbackButton({
+  developer: "266815e0c9210dfa324c6cba3573b14bee49da4209a9456f9484e5106cd408a5",
+  namespace: "nsite-manager",
+  relays: ["wss://relay.damus.io/"],
+  getMetadataBlock: () => {
+    return [`location: ${location.href}`].join("/n");
+  },
+  signEvent: (draft) => {
+    if (accountManager.active) return accountManager.active.signEvent(draft);
+    else throw new Error("No active account");
+  },
+});
+
 root.render(
   <ChakraProvider>
     <QueryStoreProvider queryStore={queryStore}>
       <AccountsProvider manager={accountManager}>
         <FactoryProvider factory={factory}>
-          <BrowserRouter basename={import.meta.env.BASE_URL}>
+          <BrowserRouter
+            basename={import.meta.env.BASE_URL}
+            future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
+          >
             <Routes>
               <Route path="/signin" Component={SigninView} />
 
