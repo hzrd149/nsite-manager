@@ -7,7 +7,6 @@ import {
   FormHelperText,
   FormLabel,
   Input,
-  ListItem,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -33,18 +32,9 @@ import { formatBytes } from "../helpers/number";
 import { useActiveAccount, useEventFactory } from "applesauce-react/hooks";
 import { multiServerUpload } from "blossom-client-sdk/actions/multi-server";
 import useServers from "../hooks/use-servers";
-import {
-  BlossomClient,
-  createAuthEvent,
-  createUploadAuth,
-  getBlobSha256,
-} from "blossom-client-sdk";
+import { createUploadAuth, getBlobSha256 } from "blossom-client-sdk";
 import { NSITE_KIND } from "../const";
-import { ensureNamedValueTag } from "applesauce-factory/helpers";
-import {
-  includeReplaceableIdentifier,
-  includeSingletonTag,
-} from "applesauce-factory/operations/event";
+import { includeSingletonTag } from "applesauce-factory/operations/event";
 import { join } from "path-browserify";
 import rxNostr from "../services/rx-nostr";
 import useMailboxes from "../hooks/use-mailboxes";
