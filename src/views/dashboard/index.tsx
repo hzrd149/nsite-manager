@@ -33,6 +33,7 @@ import { nsiteGateway } from "../../services/settings";
 import { createGatewayURL } from "../../helpers/url";
 import useRequest from "../../hooks/use-request";
 import RelayEventTable from "./relay-event-table";
+import FileExtTable from "./file-ext-table";
 
 export default function DashboardView() {
   const gateway = useObservable(nsiteGateway);
@@ -92,10 +93,7 @@ export default function DashboardView() {
       )}
       <Flex overflow="auto" p="4" direction="column">
         <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }}>
-          <Stat>
-            <StatLabel>Files</StatLabel>
-            <StatNumber>{events?.length}</StatNumber>
-          </Stat>
+          <FileExtTable files={events || []} />
           <Stat>
             <StatLabel>Servers</StatLabel>
             <StatNumber>{servers?.length}</StatNumber>

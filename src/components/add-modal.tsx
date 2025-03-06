@@ -27,15 +27,15 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-
-import { formatBytes } from "../helpers/number";
 import { useActiveAccount, useEventFactory } from "applesauce-react/hooks";
 import { multiServerUpload } from "blossom-client-sdk/actions/multi-server";
-import useServers from "../hooks/use-servers";
 import { createUploadAuth, getBlobSha256 } from "blossom-client-sdk";
-import { NSITE_KIND } from "../const";
 import { includeSingletonTag } from "applesauce-factory/operations/event";
 import { join } from "path-browserify";
+
+import { formatBytes } from "../helpers/number";
+import useServers from "../hooks/use-servers";
+import { NSITE_KIND } from "../const";
 import rxNostr from "../services/rx-nostr";
 import useMailboxes from "../hooks/use-mailboxes";
 
