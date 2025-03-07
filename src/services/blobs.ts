@@ -1,4 +1,5 @@
 import {
+  catchError,
   combineLatest,
   distinctUntilKeyChanged,
   EMPTY,
@@ -47,7 +48,10 @@ function getServerBlobs(
               BlossomClient.listBlobs(server, account.pubkey, {
                 auth,
               }),
-            ).pipe(startWith([])),
+            ).pipe(
+              catchError(() => EMPTY),
+              startWith([]),
+            ),
           }),
           {},
         ),

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   AlertIcon,
@@ -11,14 +11,17 @@ import {
 } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import { Filter, kinds } from "nostr-tools";
+import { lastValueFrom, tap } from "rxjs";
 import { Navigate, Link as RouterLink } from "react-router-dom";
 import {
   useActiveAccount,
+  useEventStore,
   useObservable,
   useStoreQuery,
 } from "applesauce-react/hooks";
 import { ReadonlyAccount } from "applesauce-accounts/accounts";
 import { TimelineQuery } from "applesauce-core/queries";
+import { addSeenRelay } from "applesauce-core/helpers";
 
 import UserName from "../../components/user-name";
 import UserAvatar from "../../components/user-avatar";
@@ -32,8 +35,10 @@ import RelayEventTable, { RelayEventsChart } from "./relay-event-table";
 import FileExtTable, { FileExtChart } from "./file-ext-table";
 import { ServerBlobsChart, ServerBlobsTable } from "./server-blobs-table";
 import useServers from "../../hooks/use-servers";
+import rxNostr from "../../services/rx-nostr";
 
 export default function DashboardView() {
+  const eventStore = useEventStore();
   const gateway = useObservable(nsiteGateway);
   const account = useActiveAccount();
   if (!account) return <Navigate to="/signin" />;
@@ -58,6 +63,28 @@ export default function DashboardView() {
   });
 
   const events = useStoreQuery(TimelineQuery, [filter]);
+
+  const [broadcasting, setBroadcasting] = useState(false);
+  const broadcast = async () => {
+    if (!events) return;
+
+    setBroadcasting(true);
+
+    // send all events to all relays
+    await Promise.allSettled(
+      events.map((event) =>
+        lastValueFrom(
+          rxNostr.send(event, { on: { relays: mailboxes?.outboxes } }).pipe(
+            tap({
+              next: (packet) => addSeenRelay(event, packet.from),
+              complete: () => eventStore.update(event),
+            }),
+          ),
+        ),
+      ),
+    );
+    setBroadcasting(false);
+  };
 
   return (
     <Flex h="full" w="full" overflow="auto" direction="column">
@@ -113,6 +140,9 @@ export default function DashboardView() {
           <Flex direction="column" gap="2">
             <FileExtChart files={events ?? []} />
             <FileExtTable maxH="xs" overflowY="auto" files={events ?? []} />
+            <Button colorScheme="pink" as={RouterLink} to="/files">
+              View Files
+            </Button>
           </Flex>
           <Flex direction="column" gap="2">
             <ServerBlobsChart files={events ?? []} />
@@ -121,11 +151,18 @@ export default function DashboardView() {
           <Flex direction="column" gap="2">
             <RelayEventsChart events={events ?? []} />
             <RelayEventTable maxH="xs" overflowY="auto" events={events ?? []} />
+
+            <Button
+              colorScheme="pink"
+              variant="link"
+              p="2"
+              onClick={broadcast}
+              isLoading={broadcasting}
+            >
+              Broadcast events
+            </Button>
           </Flex>
         </SimpleGrid>
-        <Button colorScheme="pink" size="lg" as={RouterLink} to="/files" w="xs">
-          View Files
-        </Button>
       </Flex>
     </Flex>
   );
