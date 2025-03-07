@@ -1,13 +1,4 @@
-import {
-  bufferTime,
-  distinct,
-  filter,
-  from,
-  map,
-  merge,
-  Subject,
-  switchMap,
-} from "rxjs";
+import { bufferTime, distinct, filter, map, merge, Subject } from "rxjs";
 import { openDB } from "idb";
 
 import { eventStore } from "./stores";
