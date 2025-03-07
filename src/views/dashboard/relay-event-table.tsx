@@ -9,12 +9,30 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react";
-import { TimelineQuery } from "applesauce-core/queries";
-import { useActiveAccount, useStoreQuery } from "applesauce-react/hooks";
-import { Filter, NostrEvent } from "nostr-tools";
+import { NostrEvent } from "nostr-tools";
 import { getSeenRelays } from "applesauce-core/helpers";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  Title,
+  ChartData,
+  RadialLinearScale,
+} from "chart.js";
+import autocolors from "chartjs-plugin-autocolors";
+import { PolarArea } from "react-chartjs-2";
 
-import { NSITE_KIND } from "../../const";
+// Setup chart.js
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  RadialLinearScale,
+  Title,
+  autocolors,
+);
+
 import useMailboxes from "../../hooks/use-mailboxes";
 
 function getEventsForRelay(events: NostrEvent[], relay: string) {
@@ -26,20 +44,52 @@ function getEventsForRelay(events: NostrEvent[], relay: string) {
   );
 }
 
-export default function RelayEventTable({
-  ...props
-}: Omit<TableContainerProps, "children">) {
-  const account = useActiveAccount()!;
+export function RelayEventsChart({ events }: { events: NostrEvent[] }) {
   const mailboxes = useMailboxes();
 
-  const filter: Filter = useMemo(
-    () => ({
-      kinds: [NSITE_KIND],
-      authors: [account.pubkey],
-    }),
-    [account.pubkey],
+  const data = useMemo<ChartData<"polarArea", number[]>>(() => {
+    if (!mailboxes || !events) return { labels: [], datasets: [] };
+
+    return {
+      labels: mailboxes?.outboxes ?? [],
+      datasets: [
+        {
+          label: "Events",
+          data: mailboxes?.outboxes.map(
+            (relay) => getEventsForRelay(events, relay).length,
+          ),
+        },
+      ],
+    };
+  }, [events, mailboxes]);
+
+  return (
+    <PolarArea
+      data={data}
+      options={{
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          title: {
+            display: true,
+            text: "Event distribution",
+          },
+          autocolors: {
+            mode: "data",
+          },
+        },
+      }}
+    />
   );
-  const events = useStoreQuery(TimelineQuery, [filter]);
+}
+
+export default function RelayEventTable({
+  events,
+  ...props
+}: Omit<TableContainerProps, "children"> & { events: NostrEvent[] }) {
+  const mailboxes = useMailboxes();
 
   return (
     <TableContainer {...props}>

@@ -8,9 +8,6 @@ import {
   Heading,
   Link,
   SimpleGrid,
-  Stat,
-  StatLabel,
-  StatNumber,
 } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import { Filter, kinds } from "nostr-tools";
@@ -28,12 +25,13 @@ import UserAvatar from "../../components/user-avatar";
 import { NSITE_KIND } from "../../const";
 import useMailboxes from "../../hooks/use-mailboxes";
 import useTimeline from "../../hooks/use-timeline";
-import useServers from "../../hooks/use-servers";
 import { nsiteGateway } from "../../services/settings";
 import { createGatewayURL } from "../../helpers/url";
 import useRequest from "../../hooks/use-request";
-import RelayEventTable from "./relay-event-table";
-import FileExtTable from "./file-ext-table";
+import RelayEventTable, { RelayEventsChart } from "./relay-event-table";
+import FileExtTable, { FileExtChart } from "./file-ext-table";
+import { ServerBlobsChart, ServerBlobsTable } from "./server-blobs-table";
+import useServers from "../../hooks/use-servers";
 
 export default function DashboardView() {
   const gateway = useObservable(nsiteGateway);
@@ -85,6 +83,25 @@ export default function DashboardView() {
         </ButtonGroup>
       </Flex>
 
+      {(!mailboxes || mailboxes.outboxes.length === 0) && (
+        <Alert status="warning">
+          <AlertIcon />
+          Missing nostr relays, you should add some in the
+          <Link as={RouterLink} to="/settings/account" ms="2">
+            settings
+          </Link>
+        </Alert>
+      )}
+      {!servers && (
+        <Alert status="warning">
+          <AlertIcon />
+          Missing blossom servers, you should add some in the
+          <Link as={RouterLink} to="/settings/account" ms="2">
+            settings
+          </Link>
+        </Alert>
+      )}
+
       {account instanceof ReadonlyAccount && (
         <Alert status="info">
           <AlertIcon />
@@ -92,13 +109,19 @@ export default function DashboardView() {
         </Alert>
       )}
       <Flex overflow="auto" p="4" direction="column">
-        <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }}>
-          <FileExtTable files={events || []} />
-          <Stat>
-            <StatLabel>Servers</StatLabel>
-            <StatNumber>{servers?.length}</StatNumber>
-          </Stat>
-          <RelayEventTable />
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }}>
+          <Flex direction="column" gap="2">
+            <FileExtChart files={events ?? []} />
+            <FileExtTable maxH="xs" overflowY="auto" files={events ?? []} />
+          </Flex>
+          <Flex direction="column" gap="2">
+            <ServerBlobsChart files={events ?? []} />
+            <ServerBlobsTable files={events ?? []} />
+          </Flex>
+          <Flex direction="column" gap="2">
+            <RelayEventsChart events={events ?? []} />
+            <RelayEventTable maxH="xs" overflowY="auto" events={events ?? []} />
+          </Flex>
         </SimpleGrid>
         <Button colorScheme="pink" size="lg" as={RouterLink} to="/files" w="xs">
           View Files
