@@ -1,9 +1,8 @@
-import { createRxNostr } from "rx-nostr";
-import { verifier } from "rx-nostr-crypto";
+import { createRxNostr, noopVerifier } from "rx-nostr";
 import { defaultRelays } from "./settings";
 
 const rxNostr = createRxNostr({
-  verifier,
+  verifier: noopVerifier,
   connectionStrategy: "lazy-keep",
 });
 

@@ -29,8 +29,8 @@ export function cacheRequest(filters: Filter[]): Observable<NostrEvent> {
 }
 
 // save all events to cache
-rxNostr.createAllEventObservable().subscribe((packet) => {
-  if (!isFromCache(packet.event)) cache.publish(packet.event);
+eventStore.database.inserted.subscribe((event) => {
+  if (!isFromCache(event)) cache.publish(event);
 });
 
 // save all outgoing messages to local cache and event store

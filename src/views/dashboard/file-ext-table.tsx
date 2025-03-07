@@ -29,7 +29,7 @@ export default function FileExtTable({ files }: { files: NostrEvent[] }) {
         <Thead>
           <Tr>
             <Th>File type</Th>
-            <Th isNumeric>multiply by</Th>
+            <Th isNumeric>Count</Th>
           </Tr>
         </Thead>
         <Tbody>

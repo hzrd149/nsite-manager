@@ -60,6 +60,7 @@ root.render(
           >
             <Routes>
               <Route path="/signin" Component={SigninView} />
+              <Route path="/signin/explore" Component={ExploreSites} />
 
               {/* pickers */}
               <Route path="/save" Component={SaveFileView} />
@@ -71,7 +72,7 @@ root.render(
                 <Route path="/settings/account" Component={SettingsView} />
                 <Route path="/settings/app" Component={AppSettingsView} />
                 <Route path="/add" Component={SigninView} />
-                <Route path="/explore" Component={ExploreSites} />
+                <Route path="/add/explore" Component={ExploreSites} />
               </Route>
             </Routes>
           </BrowserRouter>

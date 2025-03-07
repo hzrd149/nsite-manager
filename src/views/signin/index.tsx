@@ -87,7 +87,7 @@ export default function SigninView() {
 
       <Button
         as={RouterLink}
-        to="/explore"
+        to="explore"
         mx="8"
         colorScheme="pink"
         variant="outline"
