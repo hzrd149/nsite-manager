@@ -1,8 +1,8 @@
 import { bufferTime, distinct, filter, map, merge, Subject } from "rxjs";
+import { addSeenRelay, getSeenRelays } from "applesauce-core/helpers";
 import { openDB } from "idb";
 
 import { eventStore } from "./stores";
-import { addSeenRelay, getSeenRelays } from "applesauce-core/helpers";
 
 const db = await openDB("event-metadata", 1, {
   upgrade(database) {
