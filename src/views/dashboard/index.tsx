@@ -10,7 +10,7 @@ import {
   SimpleGrid,
 } from "@chakra-ui/react";
 import { ReadonlyAccount } from "applesauce-accounts/accounts";
-import { addSeenRelay } from "applesauce-core/helpers";
+import { addSeenRelay, mergeRelaySets } from "applesauce-core/helpers";
 import {
   useActiveAccount,
   useEventStore,
@@ -32,7 +32,7 @@ import useRequest from "../../hooks/use-request";
 import useServers from "../../hooks/use-servers";
 import useTimeline from "../../hooks/use-timeline";
 import { pool } from "../../services/pool";
-import { nsiteGateway$ } from "../../services/settings";
+import { defaultRelays$, nsiteGateway$ } from "../../services/settings";
 import FileExtTable, { FileExtChart } from "./file-ext-table";
 import RelayEventTable, { RelayEventsChart } from "./relay-event-table";
 import { ServerBlobsChart, ServerBlobsTable } from "./server-blobs-table";
@@ -40,6 +40,7 @@ import { ServerBlobsChart, ServerBlobsTable } from "./server-blobs-table";
 export default function DashboardView() {
   const eventStore = useEventStore();
   const gateway = useObservableState(nsiteGateway$);
+  const defaultRelays = useObservableState(defaultRelays$);
   const account = useActiveAccount();
   if (!account) return <Navigate to="/signin" />;
 
@@ -52,11 +53,15 @@ export default function DashboardView() {
   );
 
   const mailboxes = useMailboxes();
+  const relays = useMemo(
+    () => mergeRelaySets(defaultRelays, mailboxes?.outboxes ?? []),
+    [defaultRelays, mailboxes?.outboxes],
+  );
   const servers = useServers();
-  useTimeline(mailboxes?.outboxes, [filter]);
+  useTimeline(relays, [filter]);
 
   // load delete events
-  useRequest(mailboxes?.outboxes, {
+  useRequest(relays, {
     kinds: [kinds.EventDeletion],
     authors: [account.pubkey],
     "#k": [String(NSITE_KIND)],
@@ -77,7 +82,7 @@ export default function DashboardView() {
     await Promise.allSettled(
       events.map((event) =>
         lastValueFrom(
-          pool.publish(mailboxes?.outboxes ?? [], event).pipe(
+          pool.publish(relays, event).pipe(
             tap({
               next: (packet) => addSeenRelay(event, packet.from),
               complete: () => eventStore.update(event),

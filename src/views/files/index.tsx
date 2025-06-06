@@ -9,7 +9,8 @@ import {
 } from "@chakra-ui/react";
 import {
   useActiveAccount,
-  useEventModel
+  useEventModel,
+  useObservableState,
 } from "applesauce-react/hooks";
 import { Filter, kinds } from "nostr-tools";
 import { useEffect, useMemo } from "react";
@@ -34,11 +35,14 @@ import useRequest from "../../hooks/use-request";
 import useServers from "../../hooks/use-servers";
 import useTimeline from "../../hooks/use-timeline";
 import useToggleArray from "../../hooks/use-toggle-array";
+import { defaultRelays$ } from "../../services/settings";
+import { mergeRelaySets } from "applesauce-core/helpers";
 
 export default function FilesView() {
   const account = useActiveAccount();
   if (!account) return <Navigate to="/signin" />;
 
+  const defaultRelays = useObservableState(defaultRelays$);
   const navigate = useNavigate();
 
   const params = useParams();
@@ -53,11 +57,15 @@ export default function FilesView() {
   );
 
   const mailboxes = useMailboxes();
+  const relays = useMemo(
+    () => mergeRelaySets(defaultRelays, mailboxes?.outboxes ?? []),
+    [defaultRelays, mailboxes?.outboxes],
+  );
   const servers = useServers();
-  const timeline = useTimeline(mailboxes?.outboxes, [filter]);
+  const timeline = useTimeline(relays, [filter]);
 
   // load delete events
-  useRequest(mailboxes?.outboxes, {
+  useRequest(relays, {
     kinds: [kinds.EventDeletion],
     authors: [account.pubkey],
     "#k": [String(NSITE_KIND)],
