@@ -1,22 +1,22 @@
-import { ReplaceableLoader } from "applesauce-loaders";
+import {
+  addressPointerLoader,
+  eventPointerLoader,
+} from "applesauce-loaders/loaders";
 
-import rxNostr from "./rx-nostr";
 import { cacheRequest } from "./cache";
+import { pool } from "./pool";
+import { defaultRelays$, lookupRelays$ } from "./settings";
 import { eventStore } from "./stores";
-import { lookupRelays } from "./settings";
 
-export const replaceableLoader = new ReplaceableLoader(rxNostr, {
+export const addressLoader = addressPointerLoader(pool.request.bind(pool), {
   cacheRequest,
-  bufferTime: 500,
-  lookupRelays: lookupRelays.value,
+  lookupRelays: lookupRelays$,
+  extraRelays: defaultRelays$,
+  eventStore,
 });
 
-// update lookup relays when they change
-lookupRelays.subscribe((relays) => {
-  replaceableLoader.lookupRelays = relays;
+export const eventLoader = eventPointerLoader(pool.request.bind(pool), {
+  cacheRequest,
+  extraRelays: defaultRelays$,
+  eventStore,
 });
-
-// start loader and send events to eventStore
-replaceableLoader.subscribe((packet) =>
-  eventStore.add(packet.event, packet.from),
-);

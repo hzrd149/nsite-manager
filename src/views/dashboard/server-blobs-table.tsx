@@ -1,6 +1,3 @@
-import { useMemo } from "react";
-import { useObservable } from "applesauce-react/hooks";
-import { NostrEvent } from "nostr-tools";
 import {
   Table,
   TableContainer,
@@ -12,17 +9,20 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react";
+import { useObservableState } from "applesauce-react/hooks";
 import { BlobDescriptor } from "blossom-client-sdk";
+import { NostrEvent } from "nostr-tools";
+import { useMemo } from "react";
 
 import { getTagValue } from "applesauce-core/helpers";
 import {
-  Chart as ChartJS,
   ArcElement,
-  Tooltip,
-  Legend,
-  Title,
   ChartData,
+  Chart as ChartJS,
+  Legend,
   RadialLinearScale,
+  Title,
+  Tooltip,
 } from "chart.js";
 import autocolors from "chartjs-plugin-autocolors";
 import { PolarArea } from "react-chartjs-2";
@@ -56,7 +56,7 @@ function countFilesByServer(
 }
 
 export function ServerBlobsChart({ files }: { files: NostrEvent[] }) {
-  const distribution = useObservable(serverBlobs);
+  const distribution = useObservableState(serverBlobs);
   const byServer = distribution
     ? countFilesByServer(files, distribution)
     : undefined;
@@ -101,7 +101,7 @@ export function ServerBlobsTable({
   files,
   ...props
 }: Omit<TableContainerProps, "children"> & { files: NostrEvent[] }) {
-  const distribution = useObservable(serverBlobs);
+  const distribution = useObservableState(serverBlobs);
   const byServer = distribution ? countFilesByServer(files, distribution) : {};
 
   return (

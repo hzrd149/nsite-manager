@@ -11,12 +11,10 @@ const db = await openDB("event-metadata", 1, {
 });
 
 // subscribe to event inserts and updates (add seen relay)
-merge(eventStore.database.updated, eventStore.database.inserted).subscribe(
-  (event) => {
-    const seen = getSeenRelays(event);
-    if (seen) write.next({ id: event.id, relays: Array.from(seen) });
-  },
-);
+merge(eventStore.update$, eventStore.insert$).subscribe((event) => {
+  const seen = getSeenRelays(event);
+  if (seen) write.next({ id: event.id, relays: Array.from(seen) });
+});
 
 const write = new Subject<{ id: string; relays: string[] }>();
 
@@ -48,7 +46,7 @@ write
   });
 
 // load seen from cache
-eventStore.database.inserted
+eventStore.insert$
   .pipe(
     // get event id
     map((e) => e.id),

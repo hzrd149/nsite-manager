@@ -1,4 +1,3 @@
-import { lastValueFrom } from "rxjs";
 import {
   Alert,
   AlertIcon,
@@ -14,32 +13,33 @@ import {
   Text,
 } from "@chakra-ui/react";
 import {
-  useAccountManager,
-  useActiveAccount,
-  useEventFactory,
-  useStoreQuery,
-} from "applesauce-react/hooks";
-import { Navigate, Link as RouterLink, useNavigate } from "react-router-dom";
-import {
-  addOutboxRelay,
-  removeOutboxRelay,
-  addBlossomServerTag,
-  removeBlossomServerTag,
-} from "applesauce-factory/operations/tag";
+  AddBlossomServer,
+  AddOutboxRelay,
+  RemoveBlossomServer,
+  RemoveOutboxRelay,
+} from "applesauce-actions/actions";
+import { getOutboxes, mergeRelaySets } from "applesauce-core/helpers";
 import {
   BLOSSOM_SERVER_LIST_KIND,
   getBlossomServersFromList,
 } from "applesauce-core/helpers/blossom";
+import { ReplaceableModel } from "applesauce-core/models";
+import {
+  useAccountManager,
+  useActionHub,
+  useActiveAccount,
+  useEventModel,
+  useObservableState,
+} from "applesauce-react/hooks";
 import { kinds } from "nostr-tools";
+import { Navigate, Link as RouterLink, useNavigate } from "react-router-dom";
 
-import rxNostr from "../../services/rx-nostr";
-import ServerPicker from "../../components/server-picker";
 import RelayPicker from "../../components/relay-picker";
-import { ReplaceableQuery } from "applesauce-core/queries";
-import { getOutboxes } from "applesauce-core/helpers";
+import ServerPicker from "../../components/server-picker";
 import UserAvatar from "../../components/user-avatar";
 import UserName from "../../components/user-name";
-import { LOOKUP_RELAYS } from "../../const";
+import { pool } from "../../services/pool";
+import { defaultRelays$ } from "../../services/settings";
 
 export default function SettingsView() {
   const account = useActiveAccount();
@@ -47,58 +47,51 @@ export default function SettingsView() {
 
   const navigate = useNavigate();
   const manager = useAccountManager();
+  const actions = useActionHub();
   const removeAccount = () => {
     navigate("/");
     manager.removeAccount(account);
   };
 
-  const factory = useEventFactory();
-  const mailboxes = useStoreQuery(ReplaceableQuery, [
+  const defaultRelays = useObservableState(defaultRelays$);
+  const mailboxes = useEventModel(ReplaceableModel, [
     kinds.RelayList,
     account.pubkey,
   ]);
 
   // create a list of outbox relays that include the common contact relays
   const outboxes = mailboxes
-    ? [...getOutboxes(mailboxes), ...LOOKUP_RELAYS]
-    : LOOKUP_RELAYS;
+    ? [...getOutboxes(mailboxes), ...defaultRelays]
+    : defaultRelays;
 
   const addRelay = async (relay: string) => {
-    const draft = await factory.modifyTags(
-      mailboxes || { kind: kinds.RelayList },
-      { public: addOutboxRelay(relay) },
-    );
-    const signed = await account.signEvent(draft);
-    await lastValueFrom(rxNostr.send(signed, { on: { relays: outboxes } }));
+    await actions
+      .exec(AddOutboxRelay, relay)
+      .forEach((event) =>
+        pool.publish(mergeRelaySets(outboxes, [relay]), event),
+      );
   };
   const removeRelay = async (relay: string) => {
-    const draft = await factory.modifyTags(
-      mailboxes || { kind: kinds.RelayList },
-      { public: removeOutboxRelay(relay) },
-    );
-    const signed = await account.signEvent(draft);
-    await lastValueFrom(rxNostr.send(signed, { on: { relays: outboxes } }));
+    await actions
+      .exec(RemoveOutboxRelay, relay)
+      .forEach((event) =>
+        pool.publish(mergeRelaySets(outboxes, [relay]), event),
+      );
   };
 
-  const servers = useStoreQuery(ReplaceableQuery, [
+  const servers = useEventModel(ReplaceableModel, [
     BLOSSOM_SERVER_LIST_KIND,
     account.pubkey,
   ]);
   const addServer = async (server: string) => {
-    const draft = await factory.modifyTags(
-      servers || { kind: BLOSSOM_SERVER_LIST_KIND },
-      { public: addBlossomServerTag(server) },
-    );
-    const signed = await account.signEvent(draft);
-    await lastValueFrom(rxNostr.send(signed, { on: { relays: outboxes } }));
+    await actions
+      .exec(AddBlossomServer, server)
+      .forEach((event) => pool.publish(mergeRelaySets(outboxes), event));
   };
   const removeServer = async (server: string) => {
-    const draft = await factory.modifyTags(
-      servers || { kind: BLOSSOM_SERVER_LIST_KIND },
-      { public: removeBlossomServerTag(server) },
-    );
-    const signed = await account.signEvent(draft);
-    await lastValueFrom(rxNostr.send(signed, { on: { relays: outboxes } }));
+    await actions
+      .exec(RemoveBlossomServer, server)
+      .forEach((event) => pool.publish(mergeRelaySets(outboxes), event));
   };
 
   return (

@@ -1,44 +1,22 @@
-import { isFromCache, markFromCache } from "applesauce-core/helpers";
-import { CacheRelay, openDB } from "nostr-idb";
-import { Filter, NostrEvent } from "nostr-tools";
-import { Observable } from "rxjs";
-import rxNostr from "./rx-nostr";
+import { isFromCache } from "applesauce-core/helpers";
+import { CacheRequest } from "applesauce-loaders";
+import { addEvents, getEventsForFilters, openDB } from "nostr-idb";
+import { Filter } from "nostr-tools";
+import { bufferTime, filter } from "rxjs";
 import { eventStore } from "./stores";
 
 const db = await openDB();
-const cache = new CacheRelay(db);
-cache.connect();
 
-export function cacheRequest(filters: Filter[]): Observable<NostrEvent> {
-  return new Observable((observer) => {
-    const sub = cache.subscribe(filters, {
-      onevent: (event) => {
-        markFromCache(event);
-        observer.next(event);
-      },
-      oneose: () => {
-        sub.close();
-        observer.complete();
-      },
-      onclose: () => {
-        sub.close();
-        observer.complete();
-      },
-    });
-  });
-}
+export const cacheRequest: CacheRequest = (filters: Filter[]) =>
+  getEventsForFilters(db, filters);
 
 // save all events to cache
-eventStore.database.inserted.subscribe((event) => {
-  if (!isFromCache(event)) cache.publish(event);
-});
-
-// save all outgoing messages to local cache and event store
-rxNostr.createOutgoingMessageObservable().subscribe((packet) => {
-  if (packet.message[0] === "EVENT") {
-    cache.publish(packet.message[1]);
-    eventStore.add(packet.message[1]);
-  }
-});
-
-export default cache;
+eventStore.insert$
+  .pipe(
+    filter((e) => !isFromCache(e)),
+    bufferTime(1000),
+    filter((b) => b.length > 0),
+  )
+  .subscribe((events) => {
+    addEvents(db, events);
+  });

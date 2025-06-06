@@ -1,3 +1,7 @@
+import { IAccount } from "applesauce-accounts";
+import { UserBlossomServersModel } from "applesauce-core/models";
+import { BlobDescriptor, BlossomClient } from "blossom-client-sdk";
+import { NostrEvent } from "nostr-tools";
 import {
   catchError,
   combineLatest,
@@ -12,13 +16,9 @@ import {
   switchMap,
   tap,
 } from "rxjs";
-import { IAccount } from "applesauce-accounts";
-import { UserBlossomServersQuery } from "applesauce-core/queries";
-import { BlobDescriptor, BlossomClient } from "blossom-client-sdk";
-import { NostrEvent } from "nostr-tools";
 
 import accountManager from "./accounts";
-import { queryStore } from "./stores";
+import { eventStore } from "./stores";
 
 const listAuthCache = new Map<string, NostrEvent>();
 async function getListAuth(account: IAccount) {
@@ -69,7 +69,7 @@ export const serverBlobs = accountManager.active$.pipe(
   switchMap((account) =>
     combineLatest([
       of(account),
-      queryStore.createQuery(UserBlossomServersQuery, account.pubkey),
+      eventStore.model(UserBlossomServersModel, account.pubkey),
     ]),
   ),
   // fetch lists of each server

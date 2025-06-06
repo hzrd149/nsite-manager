@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -11,19 +10,20 @@ import {
   Text,
   useToast,
 } from "@chakra-ui/react";
-import { useActiveAccount, useStoreQuery } from "applesauce-react/hooks";
-import { TimelineQuery } from "applesauce-core/queries";
-import { Filter, NostrEvent } from "nostr-tools";
-import { Navigate } from "react-router-dom";
-import { BlossomClient, getBlobSha256 } from "blossom-client-sdk";
 import { getTagValue } from "applesauce-core/helpers";
+import { useActiveAccount, useEventModel } from "applesauce-react/hooks";
+import { BlossomClient, getBlobSha256 } from "blossom-client-sdk";
+import { Filter, NostrEvent } from "nostr-tools";
 import { basename } from "path-browserify";
+import { useEffect, useMemo, useState } from "react";
+import { Navigate } from "react-router-dom";
 
+import { TimelineModel } from "applesauce-core/models";
+import AccountSwitcher from "../../components/account-switcher";
 import { NSITE_KIND } from "../../const";
 import useMailboxes from "../../hooks/use-mailboxes";
 import useServers from "../../hooks/use-servers";
 import useTimeline from "../../hooks/use-timeline";
-import AccountSwitcher from "../../components/account-switcher";
 import PickFilesTable from "./table";
 
 export default function LoadFileView() {
@@ -47,7 +47,7 @@ export default function LoadFileView() {
   const mailboxes = useMailboxes();
   const servers = useServers();
   useTimeline(mailboxes?.inboxes, [filter]);
-  const events = useStoreQuery(TimelineQuery, [filter]);
+  const events = useEventModel(TimelineModel, [filter]);
 
   const [loading, setLoading] = useState("");
 

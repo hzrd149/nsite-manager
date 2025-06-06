@@ -1,28 +1,27 @@
-import { useEffect } from "react";
-import { useActiveAccount, useStoreQuery } from "applesauce-react/hooks";
-import { ReplaceableQuery } from "applesauce-core/queries";
+import { Model } from "applesauce-core";
+import { BLOSSOM_SERVER_LIST_KIND } from "applesauce-core/helpers";
+import { UserBlossomServersModel } from "applesauce-core/models";
+import { useActiveAccount, useEventModel } from "applesauce-react/hooks";
 import { ProfilePointer } from "nostr-tools/nip19";
-import { getServersFromServerListEvent } from "blossom-client-sdk";
+import { defer, EMPTY, ignoreElements, mergeWith } from "rxjs";
 
-import { replaceableLoader } from "../services/loaders";
+import { addressLoader } from "../services/loaders";
 
-export default function useServers(pointer?: ProfilePointer, force?: boolean) {
+function UserServersQuery(pointer: ProfilePointer): Model<URL[]> {
+  return (store) =>
+    defer(() => {
+      if (!store.hasReplaceable(BLOSSOM_SERVER_LIST_KIND, pointer.pubkey))
+        return addressLoader({ kind: BLOSSOM_SERVER_LIST_KIND, ...pointer });
+      else return EMPTY;
+    }).pipe(
+      ignoreElements(),
+      mergeWith(store.model(UserBlossomServersModel, pointer.pubkey)),
+    );
+}
+
+export default function useServers(pointer?: ProfilePointer) {
   const account = useActiveAccount();
-  pointer = pointer || account;
+  pointer = pointer || (account ? { pubkey: account.pubkey } : undefined);
 
-  useEffect(() => {
-    if (pointer)
-      replaceableLoader.next({
-        kind: 10063,
-        pubkey: pointer?.pubkey,
-        force,
-      });
-  }, [pointer]);
-
-  const event = useStoreQuery(
-    ReplaceableQuery,
-    pointer ? [10063, pointer.pubkey] : undefined,
-  );
-
-  return event && getServersFromServerListEvent(event);
+  return useEventModel(UserServersQuery, pointer ? [pointer] : undefined);
 }

@@ -1,15 +1,21 @@
 import { AccountManager, SerializedAccount } from "applesauce-accounts";
 import {
   AmberClipboardAccount,
-  NostrConnectAccount,
   registerCommonAccountTypes,
 } from "applesauce-accounts/accounts";
 import { safeParse } from "applesauce-core/helpers/json";
+import { onlyEvents } from "applesauce-relay";
+import { NostrConnectSigner } from "applesauce-signers";
 
-import { createNostrConnectConnection } from "./nostr-connect-connection";
+import { pool } from "./pool";
+import { lastValueFrom } from "rxjs";
 
 // Setup nostr connect signer
-NostrConnectAccount.createConnectionMethods = createNostrConnectConnection;
+NostrConnectSigner.subscriptionMethod = (relays, filters) =>
+  pool.subscription(relays, filters).pipe(onlyEvents());
+NostrConnectSigner.publishMethod = async (relays, event) => {
+  await lastValueFrom(pool.publish(relays, event));
+};
 
 const accountManager = new AccountManager();
 registerCommonAccountTypes(accountManager);

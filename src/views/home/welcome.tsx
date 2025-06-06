@@ -1,11 +1,11 @@
 import { Button, Divider, Flex, Heading, Image, Text } from "@chakra-ui/react";
+import { useObservableState } from "applesauce-react/hooks";
 import { Link as RouterLink } from "react-router-dom";
-import { useObservable } from "applesauce-react/hooks";
-import accountManager from "../../services/accounts";
 import UserName from "../../components/user-name";
+import accountManager from "../../services/accounts";
 
 export default function WelcomeView() {
-  const accounts = useObservable(accountManager.accounts$);
+  const accounts = useObservableState(accountManager.accounts$);
 
   return (
     <Flex

@@ -1,13 +1,13 @@
-import { useEffect } from "react";
-import { map, merge } from "rxjs";
+import { mapEventsToStore } from "applesauce-core";
+import { makeCacheRequest } from "applesauce-loaders/helpers";
 import { useEventStore } from "applesauce-react/hooks";
 import hash_sum from "hash-sum";
-import { createRxOneshotReq } from "rx-nostr";
 import { Filter } from "nostr-tools";
-import { addSeenRelay } from "applesauce-core/helpers";
+import { useEffect } from "react";
+import { merge } from "rxjs";
 
 import { cacheRequest } from "../services/cache";
-import rxNostr from "../services/rx-nostr";
+import { pool } from "../services/pool";
 
 export default function useRequest(
   relays?: string[],
@@ -20,17 +20,12 @@ export default function useRequest(
   useEffect(() => {
     if (!relays || !filters) return;
 
-    const req = createRxOneshotReq({ filters });
-
     const sub = merge(
-      cacheRequest(filters),
-      rxNostr.use(req).pipe(
-        map((p) => {
-          addSeenRelay(p.event, p.from);
-          return p.event;
-        }),
-      ),
-    ).subscribe((event) => eventStore.add(event));
+      makeCacheRequest(cacheRequest, filters),
+      pool.request(relays, filters),
+    )
+      .pipe(mapEventsToStore(eventStore))
+      .subscribe();
 
     return () => sub.unsubscribe();
   }, [hash_sum(filters), relays?.join("|"), eventStore]);

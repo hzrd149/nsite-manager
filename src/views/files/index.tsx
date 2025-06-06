@@ -1,4 +1,3 @@
-import { useEffect, useMemo } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,31 +9,31 @@ import {
 } from "@chakra-ui/react";
 import {
   useActiveAccount,
-  useObservable,
-  useStoreQuery,
+  useEventModel
 } from "applesauce-react/hooks";
+import { Filter, kinds } from "nostr-tools";
+import { useEffect, useMemo } from "react";
 import {
   Navigate,
   Link as RouterLink,
   useNavigate,
   useParams,
 } from "react-router-dom";
-import { Filter, kinds } from "nostr-tools";
 
-import useTimeline from "../../hooks/use-timeline";
-import useMailboxes from "../../hooks/use-mailboxes";
-import { NSITE_KIND } from "../../const";
-import { TimelineQuery } from "applesauce-core/queries";
-import useServers from "../../hooks/use-servers";
-import FilesTable from "../../components/files/table";
+import { TimelineModel } from "applesauce-core/models";
+import { join } from "path-browserify";
 import {
   FilesCwdContext,
   FilesSelectionContext,
 } from "../../components/files/context";
-import { join } from "path-browserify";
-import useToggleArray from "../../hooks/use-toggle-array";
+import FilesTable from "../../components/files/table";
 import FileToolbar from "../../components/files/toolbar";
+import { NSITE_KIND } from "../../const";
+import useMailboxes from "../../hooks/use-mailboxes";
 import useRequest from "../../hooks/use-request";
+import useServers from "../../hooks/use-servers";
+import useTimeline from "../../hooks/use-timeline";
+import useToggleArray from "../../hooks/use-toggle-array";
 
 export default function FilesView() {
   const account = useActiveAccount();
@@ -56,7 +55,6 @@ export default function FilesView() {
   const mailboxes = useMailboxes();
   const servers = useServers();
   const timeline = useTimeline(mailboxes?.outboxes, [filter]);
-  const loading = useObservable(timeline?.loading$);
 
   // load delete events
   useRequest(mailboxes?.outboxes, {
@@ -65,7 +63,7 @@ export default function FilesView() {
     "#k": [String(NSITE_KIND)],
   });
 
-  const events = useStoreQuery(TimelineQuery, [filter]);
+  const events = useEventModel(TimelineModel, [filter]);
 
   const selected = useToggleArray();
   useEffect(() => {
@@ -112,14 +110,8 @@ export default function FilesView() {
         </Breadcrumb>
 
         <Spacer />
-        {loading ? (
-          <Spinner flexShrink={0} />
-        ) : (
-          <Button
-            colorScheme="pink"
-            onClick={() => timeline?.next(-Infinity)}
-            size="xs"
-          >
+        {timeline && (
+          <Button colorScheme="pink" onClick={() => timeline()} size="xs">
             Load more
           </Button>
         )}

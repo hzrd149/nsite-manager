@@ -8,19 +8,20 @@ import {
   Heading,
   SimpleGrid,
 } from "@chakra-ui/react";
-import { useStoreQuery } from "applesauce-react/hooks";
-import { TimelineQuery } from "applesauce-core/queries";
 import { ReadonlyAccount } from "applesauce-accounts/accounts";
+import { useEventModel, useObservableState } from "applesauce-react/hooks";
 import { useNavigate } from "react-router-dom";
 
-import { DEFAULT_RELAYS, NSITE_KIND } from "../../const";
-import useTimeline from "../../hooks/use-timeline";
-import UserName from "../../components/user-name";
 import { getEventUID } from "applesauce-core/helpers";
-import UserAvatar from "../../components/user-avatar";
+import { TimelineModel } from "applesauce-core/models";
 import { NostrEvent } from "nostr-tools";
+import UserAvatar from "../../components/user-avatar";
+import UserName from "../../components/user-name";
+import { NSITE_KIND } from "../../const";
 import useProfile from "../../hooks/use-profile";
+import useTimeline from "../../hooks/use-timeline";
 import accountManager from "../../services/accounts";
+import { defaultRelays$ } from "../../services/settings";
 
 const filters = {
   kinds: [NSITE_KIND],
@@ -55,8 +56,9 @@ function SiteCard({ site }: { site: NostrEvent }) {
 }
 
 export default function ExploreSites() {
-  const timeline = useTimeline(DEFAULT_RELAYS, filters);
-  const sites = useStoreQuery(TimelineQuery, [filters]);
+  const relays = useObservableState(defaultRelays$);
+  const timeline = useTimeline(relays, filters);
+  const sites = useEventModel(TimelineModel, [filters]);
 
   return (
     <Flex direction="column" p="4" w="full" h="full" overflow="auto" pb="10">
@@ -67,9 +69,11 @@ export default function ExploreSites() {
       </SimpleGrid>
 
       <Flex justifyContent="center" mt="4">
-        <Button colorScheme="pink" onClick={() => timeline?.next(-Infinity)}>
-          Load more
-        </Button>
+        {timeline && (
+          <Button colorScheme="pink" onClick={() => timeline()}>
+            Load more
+          </Button>
+        )}
       </Flex>
     </Flex>
   );

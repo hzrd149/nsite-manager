@@ -1,4 +1,3 @@
-import { useState, FormEventHandler } from "react";
 import {
   Button,
   CloseButton,
@@ -8,13 +7,14 @@ import {
   Text,
   useToast,
 } from "@chakra-ui/react";
-import { useStoreQuery } from "applesauce-react/hooks";
-import { TimelineQuery } from "applesauce-core/queries";
 import { getTagValue, unixNow } from "applesauce-core/helpers";
+import { TimelineModel } from "applesauce-core/models";
+import { useEventModel } from "applesauce-react/hooks";
 import { Filter } from "nostr-tools";
+import { FormEventHandler, useState } from "react";
 
-import Favicon from "./server-favicon";
 import useTimeline from "../hooks/use-timeline";
+import Favicon from "./server-favicon";
 
 const onlineFilter: Filter = {
   kinds: [30166],
@@ -47,7 +47,7 @@ function AddRelayForm({
     setSubmitting(false);
   };
 
-  const online = useStoreQuery(TimelineQuery, [onlineFilter]);
+  const online = useEventModel(TimelineModel, [onlineFilter]);
   const relaySuggestions =
     new Set(
       online

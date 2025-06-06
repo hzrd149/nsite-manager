@@ -8,20 +8,20 @@ import {
   Input,
   Text,
 } from "@chakra-ui/react";
+import { useObservableState } from "applesauce-react/hooks";
 import { Link as RouterLink } from "react-router-dom";
-import { useObservable } from "applesauce-react/hooks";
 
 import RelayPicker from "../../components/relay-picker";
 import {
-  defaultRelays,
-  lookupRelays,
-  nsiteGateway,
+  defaultRelays$,
+  lookupRelays$,
+  nsiteGateway$,
 } from "../../services/settings";
 
 export default function AppSettingsView() {
-  const relays = useObservable(defaultRelays);
-  const lookup = useObservable(lookupRelays);
-  const gateway = useObservable(nsiteGateway);
+  const relays = useObservableState(defaultRelays$);
+  const lookup = useObservableState(lookupRelays$);
+  const gateway = useObservableState(nsiteGateway$);
 
   return (
     <Flex h="full" w="full" overflow="auto" direction="column">
@@ -63,7 +63,7 @@ export default function AppSettingsView() {
         <Flex direction="column" maxW="lg" gap="2">
           <RelayPicker
             relays={relays}
-            onChange={(arr) => defaultRelays.next(arr)}
+            onChange={(arr) => defaultRelays$.next(arr)}
           />
         </Flex>
 
@@ -78,7 +78,7 @@ export default function AppSettingsView() {
           <Input
             type="url"
             value={gateway}
-            onChange={(e) => nsiteGateway.next(e.target.value)}
+            onChange={(e) => nsiteGateway$.next(e.target.value)}
           />
         </Flex>
 
@@ -92,7 +92,7 @@ export default function AppSettingsView() {
         <Flex direction="column" maxW="lg" gap="2">
           <RelayPicker
             relays={lookup}
-            onChange={(arr) => lookupRelays.next(arr)}
+            onChange={(arr) => lookupRelays$.next(arr)}
           />
         </Flex>
       </Flex>

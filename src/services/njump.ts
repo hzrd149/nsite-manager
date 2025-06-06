@@ -1,5 +1,4 @@
 import { NostrConnectSigner, PasswordSigner } from "applesauce-signers";
-import { createNostrConnectConnection } from "./nostr-connect-connection";
 import {
   NostrConnectAccount,
   PasswordAccount,
@@ -17,10 +16,7 @@ njumpLink.searchParams.append("asf", "yes");
 export async function createAccountFromCredentials(credentials: string) {
   if (credentials.startsWith("bunker://")) {
     // handle bunker
-    const signer = await NostrConnectSigner.fromBunkerURI(
-      credentials,
-      createNostrConnectConnection(),
-    );
+    const signer = await NostrConnectSigner.fromBunkerURI(credentials);
     const pubkey = await signer.getPublicKey();
     const account = new NostrConnectAccount(pubkey, signer);
 

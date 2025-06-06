@@ -1,3 +1,4 @@
+import { SettingsIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -8,16 +9,15 @@ import {
   Image,
   Text,
 } from "@chakra-ui/react";
-import { useActiveAccount, useObservable } from "applesauce-react/hooks";
-import { SettingsIcon } from "@chakra-ui/icons";
-import { Link as RouterLink, Outlet, useNavigate } from "react-router-dom";
+import { useActiveAccount, useObservableState } from "applesauce-react/hooks";
+import { Outlet, Link as RouterLink, useNavigate } from "react-router-dom";
 
-import accountManager from "../services/accounts";
-import UserAvatar from "./user-avatar";
 import { IAccount } from "applesauce-accounts";
-import UserName from "./user-name";
-import WelcomeView from "../views/home/welcome";
 import useProfile from "../hooks/use-profile";
+import accountManager from "../services/accounts";
+import WelcomeView from "../views/home/welcome";
+import UserAvatar from "./user-avatar";
+import UserName from "./user-name";
 
 function AccountItem({ account }: { account: IAccount }) {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ function AccountItem({ account }: { account: IAccount }) {
 }
 
 function SideNav() {
-  const accounts = useObservable(accountManager.accounts$);
+  const accounts = useObservableState(accountManager.accounts$);
 
   return (
     <Flex

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertIcon,
@@ -9,37 +9,37 @@ import {
   Link,
   SimpleGrid,
 } from "@chakra-ui/react";
-import { ExternalLinkIcon } from "@chakra-ui/icons";
-import { Filter, kinds } from "nostr-tools";
-import { lastValueFrom, tap } from "rxjs";
-import { Navigate, Link as RouterLink } from "react-router-dom";
+import { ReadonlyAccount } from "applesauce-accounts/accounts";
+import { addSeenRelay } from "applesauce-core/helpers";
 import {
   useActiveAccount,
   useEventStore,
-  useObservable,
-  useStoreQuery,
+  useObservableMemo,
+  useObservableState,
 } from "applesauce-react/hooks";
-import { ReadonlyAccount } from "applesauce-accounts/accounts";
-import { TimelineQuery } from "applesauce-core/queries";
-import { addSeenRelay } from "applesauce-core/helpers";
+import { Filter, kinds } from "nostr-tools";
+import { useMemo, useState } from "react";
+import { Navigate, Link as RouterLink } from "react-router-dom";
+import { lastValueFrom, tap } from "rxjs";
 
-import UserName from "../../components/user-name";
+import { watchEventsUpdates } from "applesauce-core";
 import UserAvatar from "../../components/user-avatar";
+import UserName from "../../components/user-name";
 import { NSITE_KIND } from "../../const";
-import useMailboxes from "../../hooks/use-mailboxes";
-import useTimeline from "../../hooks/use-timeline";
-import { nsiteGateway } from "../../services/settings";
 import { createGatewayURL } from "../../helpers/url";
+import useMailboxes from "../../hooks/use-mailboxes";
 import useRequest from "../../hooks/use-request";
-import RelayEventTable, { RelayEventsChart } from "./relay-event-table";
-import FileExtTable, { FileExtChart } from "./file-ext-table";
-import { ServerBlobsChart, ServerBlobsTable } from "./server-blobs-table";
 import useServers from "../../hooks/use-servers";
-import rxNostr from "../../services/rx-nostr";
+import useTimeline from "../../hooks/use-timeline";
+import { pool } from "../../services/pool";
+import { nsiteGateway$ } from "../../services/settings";
+import FileExtTable, { FileExtChart } from "./file-ext-table";
+import RelayEventTable, { RelayEventsChart } from "./relay-event-table";
+import { ServerBlobsChart, ServerBlobsTable } from "./server-blobs-table";
 
 export default function DashboardView() {
   const eventStore = useEventStore();
-  const gateway = useObservable(nsiteGateway);
+  const gateway = useObservableState(nsiteGateway$);
   const account = useActiveAccount();
   if (!account) return <Navigate to="/signin" />;
 
@@ -62,7 +62,10 @@ export default function DashboardView() {
     "#k": [String(NSITE_KIND)],
   });
 
-  const events = useStoreQuery(TimelineQuery, [filter]);
+  const events = useObservableMemo(
+    () => eventStore.timeline(filter).pipe(watchEventsUpdates(eventStore)),
+    [filter],
+  );
 
   const [broadcasting, setBroadcasting] = useState(false);
   const broadcast = async () => {
@@ -74,7 +77,7 @@ export default function DashboardView() {
     await Promise.allSettled(
       events.map((event) =>
         lastValueFrom(
-          rxNostr.send(event, { on: { relays: mailboxes?.outboxes } }).pipe(
+          pool.publish(mailboxes?.outboxes ?? [], event).pipe(
             tap({
               next: (packet) => addSeenRelay(event, packet.from),
               complete: () => eventStore.update(event),

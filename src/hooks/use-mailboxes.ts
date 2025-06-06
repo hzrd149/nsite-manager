@@ -1,26 +1,33 @@
-import { useEffect } from "react";
-import { useActiveAccount, useStoreQuery } from "applesauce-react/hooks";
-import { MailboxesQuery } from "applesauce-core/queries";
-import { ProfilePointer } from "nostr-tools/nip19";
+import { useActiveAccount, useEventModel } from "applesauce-react/hooks";
 import { kinds } from "nostr-tools";
+import { ProfilePointer } from "nostr-tools/nip19";
 
-import { replaceableLoader } from "../services/loaders";
+import { Model } from "applesauce-core";
+import { MailboxesModel } from "applesauce-core/models";
+import { defer, EMPTY, ignoreElements, mergeWith } from "rxjs";
+import { addressLoader } from "../services/loaders";
 
-export default function useMailboxes(
-  pointer?: ProfilePointer,
-  force?: boolean,
-) {
+function UserMailboxesQuery(pointer: ProfilePointer): Model<
+  | {
+      inboxes: string[];
+      outboxes: string[];
+    }
+  | undefined
+> {
+  return (store) =>
+    defer(() => {
+      if (!store.hasReplaceable(kinds.RelayList, pointer.pubkey))
+        return addressLoader({ kind: kinds.RelayList, ...pointer });
+      else return EMPTY;
+    }).pipe(
+      ignoreElements(),
+      mergeWith(store.model(MailboxesModel, pointer.pubkey)),
+    );
+}
+
+export default function useMailboxes(pointer?: ProfilePointer) {
   const account = useActiveAccount();
-  pointer = pointer || account;
+  pointer = pointer || (account ? { pubkey: account.pubkey } : undefined);
 
-  useEffect(() => {
-    if (pointer)
-      replaceableLoader.next({
-        kind: kinds.RelayList,
-        pubkey: pointer?.pubkey,
-        force,
-      });
-  }, [pointer]);
-
-  return useStoreQuery(MailboxesQuery, pointer ? [pointer.pubkey] : undefined);
+  return useEventModel(UserMailboxesQuery, pointer ? [pointer] : undefined);
 }

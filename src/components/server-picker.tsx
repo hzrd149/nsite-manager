@@ -8,13 +8,13 @@ import {
   Text,
   useToast,
 } from "@chakra-ui/react";
-import { useStoreQuery } from "applesauce-react/hooks";
-import { TimelineQuery } from "applesauce-core/queries";
 import { getTagValue } from "applesauce-core/helpers";
 
 import { BLOSSOM_ADVERTIZEMENT_KIND, DEFAULT_RELAYS } from "../const";
 import useTimeline from "../hooks/use-timeline";
 import Favicon from "./server-favicon";
+import { useEventModel } from "applesauce-react/hooks";
+import { TimelineModel } from "applesauce-core/models";
 
 function AddServerForm({
   onSubmit,
@@ -42,7 +42,7 @@ function AddServerForm({
     setSubmitting(false);
   };
 
-  const servers = useStoreQuery(TimelineQuery, [
+  const servers = useEventModel(TimelineModel, [
     { kinds: [BLOSSOM_ADVERTIZEMENT_KIND] },
   ]);
   const serversSuggestions =

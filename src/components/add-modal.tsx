@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Button,
   ButtonGroup,
@@ -27,17 +26,18 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { useActiveAccount, useEventFactory } from "applesauce-react/hooks";
-import { multiServerUpload } from "blossom-client-sdk/actions/multi-server";
-import { createUploadAuth, getBlobSha256 } from "blossom-client-sdk";
 import { includeSingletonTag } from "applesauce-factory/operations/event";
+import { useActiveAccount, useEventFactory } from "applesauce-react/hooks";
+import { createUploadAuth, getBlobSha256 } from "blossom-client-sdk";
+import { multiServerUpload } from "blossom-client-sdk/actions/multi-server";
 import { join } from "path-browserify";
+import { useState } from "react";
 
-import { formatBytes } from "../helpers/number";
-import useServers from "../hooks/use-servers";
 import { NSITE_KIND } from "../const";
-import rxNostr from "../services/rx-nostr";
+import { formatBytes } from "../helpers/number";
 import useMailboxes from "../hooks/use-mailboxes";
+import useServers from "../hooks/use-servers";
+import { pool } from "../services/pool";
 
 export default function AddModal({
   onClose,
@@ -86,7 +86,7 @@ export default function AddModal({
 
           setLoading(`Publishing ${file.name}...`);
           // create nsite event
-          const draft = await factory.process(
+          const draft = await factory.build(
             { kind: NSITE_KIND },
             includeSingletonTag(["d", path], true),
             includeSingletonTag(["x", hash], true),
@@ -96,7 +96,7 @@ export default function AddModal({
           const signed = await account.signEvent(draft);
 
           // publish event
-          rxNostr.cast(signed, { on: { relays: mailboxes?.outboxes } });
+          pool.publish(mailboxes?.outboxes ?? [], signed).subscribe();
         } catch (error) {
           if (error instanceof Error)
             toast({ status: "error", description: error.message });

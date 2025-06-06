@@ -23,12 +23,12 @@ import { FilesSelectionContext, useFolderCwd } from "./context";
 import { formatBytes } from "../../helpers/number";
 import Timestamp from "../timestamp";
 import { createGatewayURL } from "../../helpers/url";
-import { useActiveAccount, useObservable } from "applesauce-react/hooks";
-import { nsiteGateway } from "../../services/settings";
+import { useActiveAccount, useObservableState } from "applesauce-react/hooks";
+import { nsiteGateway$ } from "../../services/settings";
 
 function FileRow({ file, server }: { file: DirFile; server?: string }) {
   const account = useActiveAccount();
-  const gateway = useObservable(nsiteGateway);
+  const gateway = useObservableState(nsiteGateway$);
   const selection = useContext(FilesSelectionContext);
   const size = 0;
 

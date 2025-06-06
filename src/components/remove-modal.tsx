@@ -19,11 +19,11 @@ import { getReplaceableIdentifier, getTagValue } from "applesauce-core/helpers";
 import { useActiveAccount, useEventFactory } from "applesauce-react/hooks";
 import { NostrEvent } from "nostr-tools";
 import { lastValueFrom } from "rxjs";
-import rxNostr from "../services/rx-nostr";
 import useMailboxes from "../hooks/use-mailboxes";
 import { useState } from "react";
 import { BlossomClient } from "blossom-client-sdk";
 import useServers from "../hooks/use-servers";
+import { pool } from "../services/pool";
 
 export default function RemoveModal({
   events,
@@ -70,9 +70,7 @@ export default function RemoveModal({
       const deleteDraft = await factory.delete(events);
       const deleteEvent = await account.signEvent(deleteDraft);
 
-      await lastValueFrom(
-        rxNostr.send(deleteEvent, { on: { relays: mailboxes?.outboxes } }),
-      );
+      await lastValueFrom(pool.publish(mailboxes?.outboxes ?? [], deleteEvent));
       onClose();
     } catch (error) {
       if (error instanceof Error)
