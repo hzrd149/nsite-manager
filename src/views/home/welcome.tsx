@@ -1,6 +1,8 @@
 import { Button, Divider, Flex, Heading, Image, Text } from "@chakra-ui/react";
 import { useObservableState } from "applesauce-react/hooks";
 import { Link as RouterLink } from "react-router-dom";
+
+import logo from "../../assets/nsite.svg";
 import UserName from "../../components/user-name";
 import accountManager from "../../services/accounts";
 
@@ -17,7 +19,7 @@ export default function WelcomeView() {
       py="10"
       px="2"
     >
-      <Image src="/nsite.svg" h="48" />
+      <Image src={logo} h="48" />
       <Heading size="lg" mt="4">
         Welcome to nsite manager
       </Heading>

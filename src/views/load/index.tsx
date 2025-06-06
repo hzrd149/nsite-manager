@@ -17,8 +17,9 @@ import { Filter, NostrEvent } from "nostr-tools";
 import { basename } from "path-browserify";
 import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
-
 import { TimelineModel } from "applesauce-core/models";
+
+import logo from "../../assets/nsite.svg";
 import AccountSwitcher from "../../components/account-switcher";
 import { NSITE_KIND } from "../../const";
 import useMailboxes from "../../hooks/use-mailboxes";
@@ -108,7 +109,7 @@ export default function LoadFileView() {
   return (
     <Flex direction="column" h="100vh">
       <Flex gap="2" alignItems="center" p="2">
-        <Image w="20" src="/nsite.svg" />
+        <Image w="20" src={logo} />
         <Heading size="md">Manager</Heading>
 
         <Spacer />

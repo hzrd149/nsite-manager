@@ -11,8 +11,9 @@ import {
 } from "@chakra-ui/react";
 import { useActiveAccount, useObservableState } from "applesauce-react/hooks";
 import { Outlet, Link as RouterLink, useNavigate } from "react-router-dom";
-
 import { IAccount } from "applesauce-accounts";
+
+import logo from "../assets/nsite.svg";
 import useProfile from "../hooks/use-profile";
 import accountManager from "../services/accounts";
 import WelcomeView from "../views/home/welcome";
@@ -63,7 +64,7 @@ function SideNav() {
       flexShrink={0}
     >
       <Flex gap="4" alignItems="center">
-        <Image w="20" src="/nsite.svg" />
+        <Image w="20" src={logo} />
         <Heading size="lg" py="2" as={RouterLink} to="/">
           Manager
         </Heading>
