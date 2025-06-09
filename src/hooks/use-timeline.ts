@@ -1,4 +1,4 @@
-import { timelineLoader } from "applesauce-loaders/loaders";
+import { createTimelineLoader } from "applesauce-loaders/loaders";
 import { useEventStore } from "applesauce-react/hooks";
 import hash_sum from "hash-sum";
 import { Filter } from "nostr-tools";
@@ -15,7 +15,7 @@ export default function useTimeline(
   const timeline = useMemo(() => {
     if (!relays || !filters) return;
 
-    return timelineLoader(pool.request.bind(pool), relays, filters, {
+    return createTimelineLoader(pool, relays, filters, {
       cache: cacheRequest,
       eventStore,
     });
